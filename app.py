@@ -384,8 +384,8 @@ if uploaded_file is not None:
     with col_btn2:
         st.download_button(label=t['btn_download_txt'], data=text_report, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
 
-# 2. الفوتر الاحترافي الثابت بالإنجليزية - مع زرار التوجيه الحصري والمباشر لواتساب ويب (WhatsApp Web)
-whatsapp_web_url = "https://web.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
+# 2. الفوتر الاحترافي الثابت بالإنجليزية مدمج به زرار الواتساب الفعلي السريع الفوري
+whatsapp_fast_url = "https://wa.me/201280339779?text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
 
 st.markdown(f"""
     <div class="futuristic-cyber-footer">
@@ -395,7 +395,7 @@ st.markdown(f"""
         <div class="footer-item">FOR ANY INQUIRY WHATSAPP 💬</div>
         
         <br>
-        <button class="cyber-whatsapp-btn" onclick="window.open('{whatsapp_web_url}', '_blank')">
+        <button class="cyber-whatsapp-btn" onclick="window.open('{whatsapp_fast_url}', '_blank')">
             💬 Open WhatsApp Now
         </button>
     </div>
