@@ -3,11 +3,13 @@ import xml.etree.ElementTree as ET
 import json
 import urllib.parse
 
+# 1. تهيئة الحالات الافتراضية للغة والثيم في جلسة المستخدم (Session State)
 if 'lang' not in st.session_state:
     st.session_state.lang = 'ar'
 if 'theme' not in st.session_state:
     st.session_state.theme = 'dark'
 
+# قاموس اللغتين لترجمة كافة نصوص واجهة الموقع
 UI_TEXT = {
     'ar': {
         'title': "📺 RAMBO - المنسق المستقبلي لشاشات LG",
@@ -67,8 +69,10 @@ UI_TEXT = {
 
 t = UI_TEXT[st.session_state.lang]
 
+# إعدادات واجهة الموقع والعنوان الرئيسي للمتصفح
 st.set_page_config(page_title="RAMBO - LG Futuristic AI Sorter", page_icon="⚡", layout="wide")
 
+# لوحة التحكم العلوية: تبديل اللغة وتبديل الثيم (فاتح / غامق)
 col_lang, col_theme, _ = st.columns([1.2, 1.5, 8])
 with col_lang:
     if st.button("🌐 English" if st.session_state.lang == 'ar' else "🌐 العربية"):
@@ -79,6 +83,7 @@ with col_theme:
         st.session_state.theme = 'light' if st.session_state.theme == 'dark' else 'dark'
         st.rerun()
 
+# 🎨 بناء الـ CSS الديناميكي للتحكم في الألوان (Dark & Light Cyber Style)
 if st.session_state.theme == 'dark':
     bg_style = "radial-gradient(circle at 50% 50%, #110926 0%, #05020d 100%)"
     text_color = "#00f0ff"
@@ -203,6 +208,7 @@ st.markdown(f"""
 st.title(t['title'])
 st.markdown(f"<h3>{t['subtitle']}</h3>", unsafe_allow_html=True)
 
+# 🛰️ قاعدة بيانات الترددات الفضائية الحية المرجعية
 LIVE_SATELLITE_DB = {
     "QATAR TV HD": {"frequency": 10834, "polarization": "Horizontal", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"},
     "AL RAHMA": {"frequency": 10873, "polarization": "Vertical", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"},
@@ -213,6 +219,7 @@ LIVE_SATELLITE_DB = {
     "MISHMISH CINEMA": {"frequency": 11938, "polarization": "Vertical", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"}
 }
 
+# مصفوفة فئات التوزيع الذكي
 ALL_AVAILABLE_CATEGORIES = [
     "⛪ Christian Channels" if st.session_state.lang == 'en' else "⛪ قنوات مسيحية",
     "🕌 Islamic Channels" if st.session_state.lang == 'en' else "🕌 قنوات إسلامية",
@@ -235,6 +242,7 @@ def ai_classify(channel_name):
     if any(w in name for w in ["NEWS", "JAZEERA", "ARABIYA", "HADATH", "CAIRO"]): return ALL_AVAILABLE_CATEGORIES[6]
     return ALL_AVAILABLE_CATEGORIES[7]
 
+# استقبال وقراءة ملف الشاشة
 uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
 
 if uploaded_file is not None:
@@ -254,6 +262,7 @@ if uploaded_file is not None:
     
     st.info(f"{t['success_read']} **{country_setting}**")
 
+    # 🔍 محرك فحص والبحث عن القنوات داخل الملف
     st.write("---")
     st.write(f"### {t['search_header']}")
     search_query = st.text_input("", placeholder=t['search_placeholder']).strip().upper()
@@ -270,14 +279,4 @@ if uploaded_file is not None:
                     t['search_col_freq']: f"{ch.get('frequency', 'N/A')} ({ch.get('polarization', '')[0]})"
                 })
         if search_results:
-            st.table(search_results)
-        else:
-            st.warning(t['search_no_results'])
-
-    st.write("---")
-    st.write(f"### {t['config_title']}")
-    st.write(t['config_tip'])
-    
-    user_priority = st.multiselect(t['multiselect_label'], options=ALL_AVAILABLE_CATEGORIES, default=[])
-    
-    final_priority = list(user_priority)
+            st.table
