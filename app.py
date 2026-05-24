@@ -105,7 +105,7 @@ else:
 
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Cairo:wght=400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Cairo:wght@400;700&display=swap');
     
     .main {{
         background: {bg_style} !important;
@@ -125,7 +125,6 @@ st.markdown(f"""
         text-shadow: {text_shadow_glow};
     }}
     
-    /* ستايل حقول الإدخال والبحث لتظهر بنمط مستقبلي متناسق */
     .stTextInput>div>div>input {{
         background-color: {box_bg} !important;
         color: {text_color} !important;
@@ -164,6 +163,7 @@ st.markdown(f"""
         box-shadow: 0 1px 0 #55002a, 0 5px 12px rgba(255, 0, 127, 0.4) !important;
     }}
     
+    /* الفوتر السيبراني الموحد بالإنجليزية الحصرية */
     .futuristic-cyber-footer {{
         background: {footer_bg};
         border: 2px solid #00f0ff;
@@ -173,13 +173,14 @@ st.markdown(f"""
         text-align: center;
         border-radius: 20px;
         margin-top: 65px;
-        font-family: 'Orbitron', 'Cairo', sans-serif;
+        font-family: 'Orbitron', sans-serif;
         line-height: 1.8;
     }}
     .footer-dev {{ color: #ff007f; font-size: 26px; font-weight: bold; text-shadow: 0 0 12px #ff007f; margin-bottom: 10px; }}
     .footer-item {{ color: #ffffff !important; font-size: 18px; margin: 6px 0; font-weight: 500; }}
     .footer-item b {{ color: #00f0ff !important; }}
     
+    /* زر الوصول السريع المتوهج والمعدل */
     .cyber-whatsapp-btn {{
         background: transparent;
         color: #25d366 !important;
@@ -206,14 +207,13 @@ st.markdown(f"""
 st.title(t['title'])
 st.markdown(f"<h3>{t['subtitle']}</h3>", unsafe_allow_html=True)
 
-# 🛰️ قاعدة بيانات الترددات الفضائية الحية المرجعية (تشمل الترددات والقنوات الجديدة)
+# 🛰️ قاعدة بيانات الترددات الفضائية الحية المرجعية
 LIVE_SATELLITE_DB = {
     "QATAR TV HD": {"frequency": 10834, "polarization": "Horizontal", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"},
     "AL RAHMA": {"frequency": 10873, "polarization": "Vertical", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"},
     "ELKHOLASA MOSALSALAT": {"frequency": 10873, "polarization": "Vertical", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"},
     "MBC 2": {"frequency": 11938, "polarization": "Vertical", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"}, 
     "CTV": {"frequency": 12022, "polarization": "Vertical", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"},
-    # قنوات جديدة مضافة لقاعدة البيانات ولم تكن موجودة بملفات الشاشات القديمة
     "RAMBO ACTION HD": {"frequency": 10834, "polarization": "Horizontal", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"},
     "MISHMISH CINEMA": {"frequency": 11938, "polarization": "Vertical", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"}
 }
@@ -247,7 +247,6 @@ uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
 if uploaded_file is not None:
     file_bytes = uploaded_file.read()
     
-    # ⚙️ الخيارات الاختيارية (تحديث الترددات + زرع القنوات الجديدة)
     col_opt1, col_opt2 = st.columns(2)
     with col_opt1:
         update_freq = st.checkbox(t['update_freq_label'], value=True)
@@ -262,7 +261,7 @@ if uploaded_file is not None:
     
     st.info(f"{t['success_read']} **{country_setting}**")
 
-    # 🔍 أولاً: محرك فحص والبحث عن القنوات داخل الملف وعرض فئتها وترددها فوراً
+    # محرك فحص والبحث عن القنوات داخل الملف
     st.write("---")
     st.write(f"### {t['search_header']}")
     search_query = st.text_input("", placeholder=t['search_placeholder']).strip().upper()
@@ -295,12 +294,11 @@ if uploaded_file is not None:
         if cat not in final_priority:
             final_priority.append(cat)
 
-    # معالجة وصيانة الترددات، وزرع القنوات الجديدة اختيارياً
+    # معالجة وصيانة الترددات وزرع القنوات الجديدة
     report_changes = []
     new_channels_injected = []
     existing_channel_names = {ch.get("channelName", "").upper() for ch in channels}
     
-    # 1. تحديث ترددات القنوات الحالية
     for ch in channels:
         name = ch.get("channelName", "")
         if update_freq and name.upper() in LIVE_SATELLITE_DB:
@@ -315,11 +313,9 @@ if uploaded_file is not None:
                 ch["polarization"] = live["polarization"]
                 ch["symbolRate"] = str(live["symbolRate"])
 
-    # 2. إضافة القنوات الجديدة (ميزة اختيارية)
     if add_new_channels:
         for db_ch_name, db_info in LIVE_SATELLITE_DB.items():
             if db_ch_name not in existing_channel_names:
-                # إنشاء قالب هيكلي كامل يحاكي نظام شاشات LG لقنوات البث
                 new_channel_node = {
                     "channelName": db_ch_name,
                     "frequency": str(db_info["frequency"]),
@@ -327,7 +323,7 @@ if uploaded_file is not None:
                     "symbolRate": str(db_info["symbolRate"]),
                     "scrambled": db_info["scrambled"],
                     "serviceType": db_info["serviceType"],
-                    "majorNumber": 9999  # سيتم إعادة ترتيبه فوراً بالأسفل
+                    "majorNumber": 9999
                 }
                 channels.append(new_channel_node)
                 new_channels_injected.append({
@@ -336,10 +332,8 @@ if uploaded_file is not None:
                     "Freq" if st.session_state.lang == 'en' else "التردد المستقطب": f"{db_info['frequency']} ({db_info['polarization'][0]})"
                 })
 
-    # فرز القنوات الكلي بناءً على أولويات فئات رفيق رامبو
     channels_sorted = sorted(channels, key=lambda x: final_priority.index(ai_classify(x.get("channelName", ""))))
     
-    # توزيع القنوات على المعاينة المرئية
     categorized = {}
     for ch in channels_sorted:
         cat = ai_classify(ch.get("channelName", ""))
@@ -366,7 +360,6 @@ if uploaded_file is not None:
         st.write(f"### {t['new_ch_added_title']}")
         st.table(new_channels_injected)
 
-    # إعادة الترقيم التسلسلي للملف الخارجي بعد الدمج والفرز
     text_report = f"{t['txt_header']} ({country_setting})\n"
     text_report += t['txt_order'] + " -> ".join([c.split()[-1] for c in final_priority]) + "\n"
     text_report += "==================================================\n\n"
@@ -390,14 +383,13 @@ if uploaded_file is not None:
     with col_btn2:
         st.download_button(label=t['btn_download_txt'], data=text_report, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
 
-# 2. الفوتر الاحترافي الحصري والنهائي للمهندس رفيق رامبو
-whatsapp_msg = urllib.parse.quote("Hello Developer Rafik Rambo, I have an inquiry regarding your LG TV Sorter script:")
-whatsapp_url = f"https://web.whatsapp.com/send?phone=201280339779&text={whatsapp_msg}"
+# 2. الفوتر الاحترافي باللغة الإنجليزية الثابتة مع دعم الاتصال الشامل (موبايل / ويب) لقصر الوصول بضغطة واحدة
+whatsapp_url = "https://api.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
 
 st.markdown(f"""
     <div class="futuristic-cyber-footer">
         <div class="footer-dev">🛠️ DEVELOPER ENG: RAFIK RAMBO</div>
-        <div class="footer-item">📱 <b>الموبايل / MOBILE:</b> +201280339779</div>
+        <div class="footer-item">📱 <b>MOBILE / الموبايل:</b> +201280339779</div>
         <div class="footer-item">✉️ <b>E-MAIL / البريد الإلكتروني:</b> rafikrambo113@gmail.com</div>
         <div class="footer-item">FOR ANY INQUIRY WHATSAPP 💬</div>
         
