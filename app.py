@@ -3,13 +3,11 @@ import xml.etree.ElementTree as ET
 import json
 import urllib.parse
 
-# 1. تهيئة الحالات الافتراضية للغة والثيم في جلسة المستخدم (Session State)
 if 'lang' not in st.session_state:
     st.session_state.lang = 'ar'
 if 'theme' not in st.session_state:
     st.session_state.theme = 'dark'
 
-# قاموس اللغتين لترجمة كافة نصوص واجهة الموقع
 UI_TEXT = {
     'ar': {
         'title': "📺 RAMBO - المنسق المستقبلي لشاشات LG",
@@ -268,4 +266,18 @@ if uploaded_file is not None:
                 search_results.append({
                     t['search_col_num']: idx,
                     t['search_col_name']: ch_name,
-                    t['search_col_cat
+                    t['search_col_cat']: ai_classify(ch_name),
+                    t['search_col_freq']: f"{ch.get('frequency', 'N/A')} ({ch.get('polarization', '')[0]})"
+                })
+        if search_results:
+            st.table(search_results)
+        else:
+            st.warning(t['search_no_results'])
+
+    st.write("---")
+    st.write(f"### {t['config_title']}")
+    st.write(t['config_tip'])
+    
+    user_priority = st.multiselect(t['multiselect_label'], options=ALL_AVAILABLE_CATEGORIES, default=[])
+    
+    final_priority = list(user_priority)
