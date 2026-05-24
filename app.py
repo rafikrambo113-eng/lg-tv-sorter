@@ -1,6 +1,7 @@
 import streamlit as st
 import xml.etree.ElementTree as ET
 import json
+import re
 
 # 1. تهيئة الحالات الافتراضية للغة والثيم في جلسة المستخدم
 if 'lang' not in st.session_state:
@@ -204,7 +205,7 @@ st.markdown(f"""
 st.title(t['title'])
 st.markdown(f"<h3>{t['subtitle']}</h3>", unsafe_allow_html=True)
 
-# 🛰️ قاعدة بيانات الترددات المرجعية
+# 🛰️ قاعدة بيانات الترددات المرجعية الشائعة
 LIVE_SATELLITE_DB = {
     "QATAR TV HD": {"frequency": 10834, "polarization": "Horizontal", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"},
     "AL RAHMA": {"frequency": 10873, "polarization": "Vertical", "symbolRate": 27500, "scrambled": "false", "serviceType": "1"},
@@ -242,6 +243,13 @@ uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
 
 if uploaded_file is not None:
     file_bytes = uploaded_file.read()
+    
+    # محاولة فك الترميز النصي لحفظ بنية الملفات الكلاسيكية بدقة
+    try:
+        file_text_original = file_bytes.decode('utf-8')
+    except UnicodeDecodeError:
+        file_text_original = file_bytes.decode('latin-1')
+
     root = ET.fromstring(file_bytes)
     
     # التعرف على موديل ونوع الملف
@@ -255,40 +263,38 @@ if uploaded_file is not None:
     
     col_opt1, col_opt2 = st.columns(2)
     with col_opt1:
-        update_freq = st.checkbox(t['update_freq_label'], value=True)
+        update_freq = st.checkbox(t['update_freq_label'], value=True if is_modern else False, disabled=not is_modern)
     with col_opt2:
-        add_new_channels = st.checkbox(t['add_new_ch_label'], value=False)
+        add_new_channels = st.checkbox(t['add_new_ch_label'], value=False, disabled=not is_modern)
 
-    # توحيد استخراج القنوات بناءً على نوع النظام
+    # توحيد استخراج القنوات بناءً على نوع النظام مع حفظ المعرف الفريد لكل ITEM
     channels_to_sort = []
     report_changes = []
-    new_channels_injected = []
     
     if is_modern:
-        # نظام الشاشات الحديثة (55 بوصة مثلاً)
         broadcast_data = json.loads(legacy_broadcast_tag.text)
         channels_list = broadcast_data.get("channelList", [])
         
-        for ch in channels_list:
+        for idx, ch in enumerate(channels_list):
             channels_to_sort.append({
+                "id": idx,
                 "name": ch.get("channelName", "Unknown"),
                 "freq": str(ch.get("frequency", "N/A")),
-                "polarization": ch.get("polarization", ""),
                 "raw_node": ch
             })
     else:
-        # نظام الشاشات الكلاسيكية (32 بوصة مثلاً)
+        # نظام الشاشات الكلاسيكية (32 بوصة): سنقوم باستخراج معرفات فريدة بناءً على ترتيب الظهور
         xml_items = root.findall(".//ITEM")
-        for item in xml_items:
+        for idx, item in enumerate(xml_items):
             ch_name_node = item.find("vchName")
             freq_node = item.find("frequency")
             ch_name = ch_name_node.text if ch_name_node is not None else "Unknown"
             freq = freq_node.text if freq_node is not None else "N/A"
             
             channels_to_sort.append({
+                "id": idx,
                 "name": ch_name,
                 "freq": freq,
-                "polarization": "Vertical", # قيمة افتراضية للقديم
                 "raw_node": item
             })
 
@@ -324,7 +330,7 @@ if uploaded_file is not None:
         if cat not in final_priority:
             final_priority.append(cat)
 
-    # معالجة وتعديل الترددات الحية للموديلات الحديثة فقط (إذا تم تفعيلها)
+    # معالجة وتعديل الترددات الحية للموديلات الحديثة فقط
     if is_modern and update_freq:
         for ch in channels_to_sort:
             name_up = ch["name"].upper()
@@ -367,13 +373,12 @@ if uploaded_file is not None:
         st.write(f"### {t['freq_table_title']}")
         st.table(report_changes)
 
-    # حفظ وإعادة ترقيم القنوات وبناء ملف الـ XML النهائي بشكل صحيح لكل موديل
+    # حفظ وإعادة ترقيم القنوات وبناء ملف الـ XML النهائي بشكل صحيح وآمن لكل موديل
     text_report = f"{t['txt_header']} ({model_name})\n"
     text_report += t['txt_order'] + " -> ".join([c.split()[-1] for c in final_priority]) + "\n"
     text_report += "==================================================\n\n"
     
     if is_modern:
-        # شاشات حديثة: إعادة الترتيب وحقن الـ JSON
         final_list_modern = []
         for index, ch in enumerate(channels_sorted, start=1):
             node = ch["raw_node"]
@@ -383,42 +388,54 @@ if uploaded_file is not None:
             
         broadcast_data["channelList"] = final_list_modern
         legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
-        final_xml = ET.tostring(root, encoding="utf-8")
+        final_xml_bytes = ET.tostring(root, encoding="utf-8")
     else:
-        # شاشات كلاسيكية 32 بوصة: سحب الأود المترتبة وإعادة ترقيم prNum داخل الـ XML الأصلي
-        parent_map = {c: p for p in root.iter() for c in p}
-        channel_container = None
+        # الحل السحري للموديلات القديمة (32 بوصة): الحقن المباشر في النص الأصلي لتجنب تلف الملف!
+        # نقوم بقراءة كتل <ITEM> كاملة بالترتيب الجديد
+        all_items_raw_xml = root.findall(".//ITEM")
         
-        # البحث عن الحاوية التي تحتوي على وسوم ITEM لحذف القديم ووضع المرتب
-        all_items = root.findall(".//ITEM")
-        if all_items:
-            first_item = all_items[0]
-            channel_container = parent_map[first_item]
-            for item in all_items:
-                channel_container.remove(item)
-                
-        # وضع القنوات بالترتيب الجديد مع تغيير الترقيم الرقمي prNum
+        # إنشاء مصفوفة موازية تحتوي على النصوص الكاملة لكل ITEM من الملف المصدري دون أي تعديل هيكلي
+        # هذا يضمن احتفاظ الشاشة بكل الفراغات والرموز الخاصة بها
+        item_strings_sorted = []
         for index, ch in enumerate(channels_sorted, start=1):
             item_node = ch["raw_node"]
+            # تعديل الترقيم برمجياً داخل النود
             pr_num_tag = item_node.find("prNum")
             if pr_num_tag is not None:
                 pr_num_tag.text = str(index)
-            if channel_container is not None:
-                channel_container.append(item_node)
-            text_report += f"No. {index:03d} : {ch['name']:<25} | Matrix Group: {ai_classify(ch['name'])} | Freq: {ch['freq']}\n"
             
-        final_xml = ET.tostring(root, encoding="utf-8")
+            # تحويل النود لمتن نصي نقي
+            item_str = ET.tostring(item_node, encoding="utf-8").decode("utf-8")
+            # إزالة الترويسات الزائدة إن وجدت من عملية التوليد الفرعية
+            item_str = item_str.replace("<?xml version='1.0' encoding='utf-8'?>\n", "")
+            item_strings_sorted.append(item_str)
+            text_report += f"No. {index:03d} : {ch['name']:<25} | Matrix Group: {ai_classify(ch['name'])} | Freq: {ch['freq']}\n"
+        
+        # بناء الحاوية النهائية للقنوات وإرجاعها في جسم الملف المصدري الأصلي
+        combined_items_str = "\n".join(item_strings_sorted)
+        
+        # استبدال كتلة القنوات القديمة بالكتلة الجديدة تماماً
+        # نبحث عن أول ظهور لـ <ITEM> وآخر ظهور لـ </ITEM>
+        start_idx = file_text_original.find("<ITEM>")
+        end_idx = file_text_original.rfind("</ITEM>") + len("</ITEM>")
+        
+        if start_idx != -1 and end_idx != -1:
+            final_text_output = file_text_original[:start_idx] + combined_items_str + file_text_original[end_idx:]
+        else:
+            final_text_output = ET.tostring(root, encoding="utf-8").decode("utf-8")
+            
+        final_xml_bytes = final_text_output.encode('utf-8')
 
     st.write("---")
     st.success(t['ready_msg'])
     
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
-        st.download_button(label=t['btn_download_tll'], data=final_xml, file_name="GlobalClone00001.TLL", mime="application/octet-stream")
+        st.download_button(label=t['btn_download_tll'], data=final_xml_bytes, file_name="GlobalClone00001.TLL", mime="application/octet-stream")
     with col_btn2:
         st.download_button(label=t['btn_download_txt'], data=text_report, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
 
-# الفوتر الاحترافي باللغة الإنجليزية الثابتة ودعم اتصالات الواتساب المباشرة لقصر الوصول
+# الفوتر الاحترافي
 whatsapp_url = "https://api.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
 
 st.markdown(f"""
