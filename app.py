@@ -388,7 +388,7 @@ if uploaded_file is not None:
 whatsapp_url = "https://api.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
 st.markdown(f"""
     <div class="futuristic-cyber-footer">
-        <div class="footer-dev">🛠️ DEVELOPER ENG: RAFIK RAMBO</div>
+        <div class="footer-dev">🛠️ DEVELOPER ENG: RAFIK NATHAN</div>
         <div class="footer-item">📱 <b>MOBILE / الموبايل:</b> +201280339779</div>
         <div class="footer-item">✉️ <b>E-MAIL / البريد الإلكتروني:</b> rafikrambo113@gmail.com</div>
         <a href="{whatsapp_url}" target="_blank" class="cyber-whatsapp-btn">WhatsApp Web</a>
