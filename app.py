@@ -5,56 +5,52 @@ import json
 st.set_page_config(page_title="RAMBO - Universal LG Sorter", layout="wide")
 st.title("📺 RAMBO - المنسق العالمي الشامل")
 
+# 1. تعريف الفئات
+CATEGORIES = ["دينية", "أفلام ودراما", "رياضة", "أخبار", "أطفال", "عامة"]
+
+def get_category(name):
+    name = name.upper()
+    if any(x in name for x in ["ALMAJD", "SAT", "AGHAPY", "KARMA", "MESAT"]): return "دينية"
+    if any(x in name for x in ["CINEMA", "DRAMA", "MBC", "MOVIE"]): return "أفلام ودراما"
+    if any(x in name for x in ["SPORT", "ONTIME"]): return "رياضة"
+    if any(x in name for x in ["NEWS", "JAZEERA"]): return "أخبار"
+    if any(x in name for x in ["KIDS", "TOON"]): return "أطفال"
+    return "عامة"
+
 uploaded_file = st.file_uploader("🚀 ارفع ملف القنوات (TLL):", type=["TLL"])
 
 if uploaded_file is not None:
     file_bytes = uploaded_file.read()
     root = ET.fromstring(file_bytes)
     
-    # 1. تحديد نوع النظام
-    legacy_broadcast_tag = root.find(".//legacybroadcast")
-    is_modern = legacy_broadcast_tag is not None and legacy_broadcast_tag.text
+    st.success(f"✅ تم التعرف على ملف: {root.find('.//ModelName').text}")
+
+    # 2. أداة الترتيب الذكي
+    st.write("### 🎛️ أدوات التحكم في الترتيب")
+    col1, col2 = st.columns(2)
     
-    st.success(f"✅ تم التعرف على الملف: {root.find('.//ModelName').text}")
-    
-    # 2. منطقة البحث والترتيب
-    search_query = st.text_input("🔍 ابحث عن قناة في الملف:")
-    
-    if is_modern:
-        # --- معالجة WebOS (الحديث) ---
-        broadcast_data = json.loads(legacy_broadcast_tag.text)
-        channels = broadcast_data.get("channelList", [])
-        
-        # فلترة القنوات
-        filtered = [ch for ch in channels if search_query.lower() in ch.get("channelName", "").lower()]
-        st.write(f"عرض {len(filtered)} قناة:")
-        st.table([{"الاسم": ch["channelName"], "التردد": ch["frequency"]} for ch in filtered[:10]])
-        
-        # هنا يمكنك إضافة زر "ترتيب" ليقوم بتعديل broadcast_data
-        
-    else:
-        # --- معالجة LH Series (القديم) ---
-        items = root.findall(".//ITEM")
-        filtered = [item for item in items if search_query.lower() in (item.find("vchName").text.lower() if item.find("vchName") is not None else "")]
-        
-        st.write(f"عرض {len(filtered)} قناة (نظام قديم):")
-        data = []
-        for item in filtered[:10]:
-            data.append({
-                "رقم": item.find("prNum").text,
-                "الاسم": item.find("vchName").text if item.find("vchName") is not None else "N/A"
-            })
-        st.table(data)
-        
-        # ميزة الترتيب للموديل القديم:
-        if st.button("🛠️ إعادة ترتيب القنوات (تلقائي)"):
+    with col1:
+        if st.button("✨ ترتيب القنوات حسب الفئة (AI)"):
+            items = root.findall(".//ITEM")
+            # ترتيب القنوات بناءً على الفئات
+            sorted_items = sorted(items, key=lambda x: get_category(x.find("vchName").text if x.find("vchName") is not None else ""))
+            
+            # إعادة تعيين الأرقام بعد الترتيب
+            for i, item in enumerate(sorted_items, start=1):
+                item.find("prNum").text = str(i)
+            st.success("تم إعادة ترتيب القنوات بنجاح حسب التصنيفات!")
+
+    with col2:
+        if st.button("🔄 إعادة الترقيم التسلسلي (1, 2, 3...)"):
+            items = root.findall(".//ITEM")
             for i, item in enumerate(items, start=1):
                 item.find("prNum").text = str(i)
-            st.success("تم إعادة ترتيب جميع القنوات رقمياً (1, 2, 3...)")
+            st.success("تم الترقيم المتسلسل!")
 
-    # 3. زر التحميل الموحد
+    # 3. تحميل الملف
+    st.write("---")
     final_xml = ET.tostring(root, encoding="utf-8")
-    st.download_button("📥 تحميل الملف النهائي المنسق", data=final_xml, file_name="RAMBO_Sorted.TLL")
+    st.download_button("📥 تحميل الملف النهائي المعدل", data=final_xml, file_name="RAMBO_FINAL.TLL")
 
 else:
-    st.info("💡 بانتظار رفع ملف القنوات للبدء في التنسيق.")
+    st.info("💡 بانتظار رفع الملف للبدء.")
