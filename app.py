@@ -163,6 +163,7 @@ st.markdown(f"""
         box-shadow: 0 1px 0 #55002a, 0 5px 12px rgba(255, 0, 127, 0.4) !important;
     }}
     
+    /* الفوتر السيبراني الموحد بالإنجليزية الحصرية */
     .futuristic-cyber-footer {{
         background: {footer_bg};
         border: 2px solid #00f0ff;
@@ -179,6 +180,7 @@ st.markdown(f"""
     .footer-item {{ color: #ffffff !important; font-size: 18px; margin: 6px 0; font-weight: 500; }}
     .footer-item b {{ color: #00f0ff !important; }}
     
+    /* ستايل النيون الخاص بالزرار الفعلي للواتساب */
     .cyber-whatsapp-btn {{
         background: transparent !important;
         color: #25d366 !important;
@@ -192,8 +194,6 @@ st.markdown(f"""
         cursor: pointer !important;
         font-family: 'Orbitron', sans-serif !important;
         font-size: 16px !important;
-        text-decoration: none;
-        display: inline-block;
         transition: all 0.3s ease !important;
     }}
     .cyber-whatsapp-btn:hover {{
@@ -279,4 +279,124 @@ if uploaded_file is not None:
                     t['search_col_freq']: f"{ch.get('frequency', 'N/A')} ({ch.get('polarization', '')[0]})"
                 })
         if search_results:
-            st.table
+            st.table(search_results)
+        else:
+            st.warning(t['search_no_results'])
+
+    # تحديد ترتيب الأولويات للفئات
+    st.write("---")
+    st.write(f"### {t['config_title']}")
+    st.write(t['config_tip'])
+    
+    user_priority = st.multiselect(t['multiselect_label'], options=ALL_AVAILABLE_CATEGORIES, default=[])
+    
+    final_priority = list(user_priority)
+    for cat in ALL_AVAILABLE_CATEGORIES:
+        if cat not in final_priority:
+            final_priority.append(cat)
+
+    # معالجة وصيانة الترددات وزرع القنوات الجديدة
+    report_changes = []
+    new_channels_injected = []
+    existing_channel_names = {ch.get("channelName", "").upper() for ch in channels}
+    
+    for ch in channels:
+        name = ch.get("channelName", "")
+        if update_freq and name.upper() in LIVE_SATELLITE_DB:
+            live = LIVE_SATELLITE_DB[name.upper()]
+            if int(ch.get("frequency", 0)) != live["frequency"]:
+                report_changes.append({
+                    "Channel" if st.session_state.lang == 'en' else "القناة": name, 
+                    "Old Freq" if st.session_state.lang == 'en' else "التردد القديم": ch.get("frequency"), 
+                    "New Freq" if st.session_state.lang == 'en' else "التردد الجديد": live["frequency"]
+                })
+                ch["frequency"] = str(live["frequency"])
+                ch["polarization"] = live["polarization"]
+                ch["symbolRate"] = str(live["symbolRate"])
+
+    if add_new_channels:
+        for db_ch_name, db_info in LIVE_SATELLITE_DB.items():
+            if db_ch_name not in existing_channel_names:
+                new_channel_node = {
+                    "channelName": db_ch_name,
+                    "frequency": str(db_info["frequency"]),
+                    "polarization": db_info["polarization"],
+                    "symbolRate": str(db_info["symbolRate"]),
+                    "scrambled": db_info["scrambled"],
+                    "serviceType": db_info["serviceType"],
+                    "majorNumber": 9999
+                }
+                channels.append(new_channel_node)
+                new_channels_injected.append({
+                    "Channel" if st.session_state.lang == 'en' else "القناة الجديدة": db_ch_name,
+                    "Category" if st.session_state.lang == 'en' else "الفئة الموجهة": ai_classify(db_ch_name),
+                    "Freq" if st.session_state.lang == 'en' else "التردد المستقطب": f"{db_info['frequency']} ({db_info['polarization'][0]})"
+                })
+
+    channels_sorted = sorted(channels, key=lambda x: final_priority.index(ai_classify(x.get("channelName", ""))))
+    
+    categorized = {}
+    for ch in channels_sorted:
+        cat = ai_classify(ch.get("channelName", ""))
+        if cat not in categorized: categorized[cat] = []
+        categorized[cat].append(ch.get("channelName", ""))
+
+    st.write("---")
+    st.write(f"### {t['preview_title']}")
+    col1, col2 = st.columns(2)
+    for i, cat_name in enumerate(final_priority):
+        if cat_name in categorized:
+            ch_list = categorized[cat_name]
+            target_col = col1 if i % 2 == 0 else col2
+            with target_col:
+                is_user_chosen = "⭐ " if cat_name in user_priority else ""
+                with st.expander(f"{is_user_chosen}{cat_name} — ({len(ch_list)} {t['channels_count']})"):
+                    st.write(", ".join(ch_list))
+                    
+    if update_freq and report_changes:
+        st.write(f"### {t['freq_table_title']}")
+        st.table(report_changes)
+
+    if add_new_channels and new_channels_injected:
+        st.write(f"### {t['new_ch_added_title']}")
+        st.table(new_channels_injected)
+
+    text_report = f"{t['txt_header']} ({country_setting})\n"
+    text_report += t['txt_order'] + " -> ".join([c.split()[-1] for c in final_priority]) + "\n"
+    text_report += "==================================================\n\n"
+    
+    for index, ch in enumerate(channels_sorted, start=1):
+        ch["majorNumber"] = index
+        ch_name = ch.get("channelName", "Unknown")
+        ch_cat = ai_classify(ch_name)
+        text_report += f"No. {index:03d} : {ch_name:<25} | Matrix Group: {ch_cat} | Freq: {ch.get('frequency')}\n"
+        
+    broadcast_data["channelList"] = channels_sorted
+    legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
+    final_xml = ET.tostring(root, encoding="utf-8")
+    
+    st.write("---")
+    st.success(t['ready_msg'])
+    
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        st.download_button(label=t['btn_download_tll'], data=final_xml, file_name="GlobalClone00001.TLL", mime="application/octet-stream")
+    with col_btn2:
+        st.download_button(label=t['btn_download_txt'], data=text_report, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
+
+# 2. الفوتر الاحترافي الثابت بالإنجليزية مدمج به زرار الواتساب الفعلي السريع الفوري
+whatsapp_fast_url = "https://wa.me/201280339779?text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
+
+st.markdown(f"""
+    <div class="futuristic-cyber-footer">
+        <div class="footer-dev">🛠️ DEVELOPER ENG: RAFIK RAMBO</div>
+        <div class="footer-item">📱 <b>MOBILE / الموبايل:</b> +201280339779</div>
+        <div class="footer-item">✉️ <b>E-MAIL / البريد الإلكتروني:</b> rafikrambo113@gmail.com</div>
+        <div class="footer-item">FOR ANY INQUIRY WHATSAPP 💬</div>
+        
+        <br>
+        <button class="cyber-whatsapp-btn" onclick="window.open('{whatsapp_fast_url}', '_blank')">
+            💬 Open WhatsApp Now
+        </button>
+    </div>
+""", unsafe_allow_html=True)
