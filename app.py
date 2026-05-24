@@ -180,7 +180,7 @@ st.markdown(f"""
     .footer-item {{ color: #ffffff !important; font-size: 18px; margin: 6px 0; font-weight: 500; }}
     .footer-item b {{ color: #00f0ff !important; }}
     
-    /* زر تشعيع النيون الخاص بـ WhatsApp Web الحصري */
+    /* زر النيون المحسّن للوصول السريع الفوري للواتساب */
     .cyber-whatsapp-btn {{
         background: transparent;
         color: #25d366 !important;
@@ -261,7 +261,7 @@ if uploaded_file is not None:
     
     st.info(f"{t['success_read']} **{country_setting}**")
 
-    # محرك فحص والبحث عن القنوات داخل الملف
+    # محرك فحص والبحث عن القنوات داخل الملف وعمل إعادة ضبط تلقائية عند المسح
     st.write("---")
     st.write(f"### {t['search_header']}")
     search_query = st.text_input("", placeholder=t['search_placeholder']).strip().upper()
@@ -383,8 +383,8 @@ if uploaded_file is not None:
     with col_btn2:
         st.download_button(label=t['btn_download_txt'], data=text_report, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
 
-# 2. الفوتر الاحترافي الحصري باللغة الإنجليزية الثابتة مع لينك توجيه صريح لـ WhatsApp Web
-whatsapp_web_url = "https://web.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
+# 2. الفوتر الاحترافي الثابت بالإنجليزية مع استخدام بروتوكول التوجيه السريع والمرن المباشر (wa.me)
+whatsapp_fast_url = "https://wa.me/201280339779?text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
 
 st.markdown(f"""
     <div class="futuristic-cyber-footer">
@@ -393,8 +393,8 @@ st.markdown(f"""
         <div class="footer-item">✉️ <b>E-MAIL / البريد الإلكتروني:</b> rafikrambo113@gmail.com</div>
         <div class="footer-item">FOR ANY INQUIRY WHATSAPP 💬</div>
         
-        <a href="{whatsapp_web_url}" target="_blank" class="cyber-whatsapp-btn">
-            WhatsApp Web
+        <a href="{whatsapp_fast_url}" target="_blank" class="cyber-whatsapp-btn">
+            Connect via WhatsApp
         </a>
     </div>
 """, unsafe_allow_html=True)
