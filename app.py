@@ -180,26 +180,27 @@ st.markdown(f"""
     .footer-item {{ color: #ffffff !important; font-size: 18px; margin: 6px 0; font-weight: 500; }}
     .footer-item b {{ color: #00f0ff !important; }}
     
-    /* زر النيون المطور للوصول السريع الفوري للواتساب بدون تعليق الكاش */
+    /* ستايل النيون الخاص بالزرار الفعلي للواتساب */
     .cyber-whatsapp-btn {{
-        background: transparent;
+        background: transparent !important;
         color: #25d366 !important;
-        padding: 14px 35px;
+        padding: 14px 35px !important;
         text-align: center;
-        border-radius: 35px;
-        display: inline-block;
-        font-weight: bold;
-        text-decoration: none;
-        margin-top: 20px;
-        border: 2px solid #25d366;
-        box-shadow: 0 0 20px rgba(37, 211, 102, 0.3);
-        transition: all 0.3s ease;
+        border-radius: 35px !important;
+        font-weight: bold !important;
+        margin-top: 20px !important;
+        border: 2px solid #25d366 !important;
+        box-shadow: 0 0 20px rgba(37, 211, 102, 0.3) !important;
+        cursor: pointer !important;
+        font-family: 'Orbitron', sans-serif !important;
+        font-size: 16px !important;
+        transition: all 0.3s ease !important;
     }}
     .cyber-whatsapp-btn:hover {{
-        background: #25d366;
+        background: #25d366 !important;
         color: #000000 !important;
-        box-shadow: 0 0 35px #25d366;
-        transform: scale(1.04);
+        box-shadow: 0 0 35px #25d366 !important;
+        transform: scale(1.04) !important;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -261,7 +262,7 @@ if uploaded_file is not None:
     
     st.info(f"{t['success_read']} **{country_setting}**")
 
-    # 🔍 محرك فحص والبحث عن القنوات داخل الملف وعمل إعادة ضبط تلقائية عند المسح
+    # 🔍 محرك فحص والبحث عن القنوات داخل الملف
     st.write("---")
     st.write(f"### {t['search_header']}")
     search_query = st.text_input("", placeholder=t['search_placeholder']).strip().upper()
@@ -383,7 +384,7 @@ if uploaded_file is not None:
     with col_btn2:
         st.download_button(label=t['btn_download_txt'], data=text_report, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
 
-# 2. الفوتر الاحترافي الثابت بالإنجليزية مع استخدام بروتوكول التوجيه السريع والمرن الفوري (wa.me) لكسر الكاش
+# 2. الفوتر الاحترافي الثابت بالإنجليزية مدمج به زرار الواتساب الفعلي السريع الفوري
 whatsapp_fast_url = "https://wa.me/201280339779?text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
 
 st.markdown(f"""
@@ -393,8 +394,9 @@ st.markdown(f"""
         <div class="footer-item">✉️ <b>E-MAIL / البريد الإلكتروني:</b> rafikrambo113@gmail.com</div>
         <div class="footer-item">FOR ANY INQUIRY WHATSAPP 💬</div>
         
-        <a href="{whatsapp_fast_url}" target="_blank" class="cyber-whatsapp-btn" rel="noopener noreferrer">
-            Open WhatsApp Now
-        </a>
+        <br>
+        <button class="cyber-whatsapp-btn" onclick="window.open('{whatsapp_fast_url}', '_blank')">
+            💬 Open WhatsApp Now
+        </button>
     </div>
 """, unsafe_allow_html=True)
