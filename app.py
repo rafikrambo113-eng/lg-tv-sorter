@@ -163,7 +163,6 @@ st.markdown(f"""
         box-shadow: 0 1px 0 #55002a, 0 5px 12px rgba(255, 0, 127, 0.4) !important;
     }}
     
-    /* الفوتر السيبراني الموحد بالإنجليزية الحصرية */
     .futuristic-cyber-footer {{
         background: {footer_bg};
         border: 2px solid #00f0ff;
@@ -180,7 +179,6 @@ st.markdown(f"""
     .footer-item {{ color: #ffffff !important; font-size: 18px; margin: 6px 0; font-weight: 500; }}
     .footer-item b {{ color: #00f0ff !important; }}
     
-    /* زر الوصول السريع المتوهج والمعدل */
     .cyber-whatsapp-btn {{
         background: transparent;
         color: #25d366 !important;
@@ -261,7 +259,7 @@ if uploaded_file is not None:
     
     st.info(f"{t['success_read']} **{country_setting}**")
 
-    # محرك فحص والبحث عن القنوات داخل الملف
+    # 🔍 محرك فحص والبحث عن القنوات داخل الملف وعمل إعادة ضبط تلقائية عند المسح
     st.write("---")
     st.write(f"### {t['search_header']}")
     search_query = st.text_input("", placeholder=t['search_placeholder']).strip().upper()
@@ -383,7 +381,7 @@ if uploaded_file is not None:
     with col_btn2:
         st.download_button(label=t['btn_download_txt'], data=text_report, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
 
-# 2. الفوتر الاحترافي باللغة الإنجليزية الثابتة مع دعم الاتصال الشامل (موبايل / ويب) لقصر الوصول بضغطة واحدة
+# 2. الفوتر الاحترافي باللغة الإنجليزية الثابتة مع دعم الاتصال الشامل
 whatsapp_url = "https://api.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
 
 st.markdown(f"""
