@@ -34,7 +34,9 @@ UI_TEXT = {
         'btn_download_tll': "📥 تحميل ملف الشاشة النهائي (GlobalClone00001.TLL)",
         'btn_download_txt': "📄 تحميل تقرير الترتيب كملف نصي (Channels_List.txt)",
         'txt_header': "📄 تقرير الترتيب وتحديثات الترددات النهائي لشاشة LG",
-        'txt_order': "🛠️ ترتيب الفئات المختار: "
+        'txt_order': "🛠️ ترتيب الفئات المختار: ",
+        'lg_trick_title': "💡 ملحوظة فنية هامة جداً بعد تنزيل الملف على شاشة LG:",
+        'lg_trick_text': "في بعض الحالات، بعد تنزيل ملف القنوات على الشاشة، قد تشعر أن القنوات ليست منظمة كما رتبتها. لحل هذا الأمر فوراً واجبار الشاشة على تفعيل الترتيب الصحيح، قم بالآتي:\n1. من إعدادات التلفزيون اختار **القنوات (Channels)**.\n2. بعد ذلك اختار **مدير القنوات (Channel Manager)**.\n3. اختار **التعديل على كل القنوات (Edit All Channels)**.\n4. ستظهر لك القنوات المرتبة ويكون بعضها في وضع مخفي، قم **بتحديد كل القنوات** واختار **استعادة (Restore)**.\n*ملحوظة: تفعل هذه الخطوة فقط إذا شعرت أن الملف بعد التنزيل غير مرتب كما حددته على الموقع.*"
     },
     'en': {
         'title': "📺 RAMBO - LG Universal AI Channel Sorter",
@@ -59,7 +61,9 @@ UI_TEXT = {
         'btn_download_tll': "📥 Download Final TV Configuration (GlobalClone00001.TLL)",
         'btn_download_txt': "📄 Download Sorting Text Diagnostics (Channels_List.txt)",
         'txt_header': "📄 Final LG TV Channel Sorting & Updates Report",
-        'txt_order': "🛠️ Selected Category Priority: "
+        'txt_order': "🛠️ Selected Category Priority: ",
+        'lg_trick_title': "💡 Critical Expert Technical Tip After Uploading to LG TV:",
+        'lg_trick_text': "In some cases, after importing the file into your LG TV, you might feel that the channels are not perfectly sorted as configured. To fix this behavior instantly, follow these steps:\n1. Open TV **Settings** -> Go to **Channels**.\n2. Select **Channel Manager**.\n3. Choose **Edit All Channels**.\n4. You will see your sorted channels, but some might be hidden by default. **Select All Channels** and click **Restore**.\n*Note: This is only required if you feel the TV cache mixed the sorting order after the USB upload.*"
     }
 }
 
@@ -105,7 +109,8 @@ st.markdown(f"""
     h1 {{ color: #ff007f !important; text-shadow: 0 0 10px #ff007f, 0 0 25px rgba(255, 0, 127, 0.4) !important; text-align: center; font-weight: 900; margin-top: 5px; }}
     h3, p, label, .stMarkdown, .stInfo, div[data-testid="stMarkdownContainer"] p {{ color: {text_color} !important; text-shadow: {text_shadow_glow}; }}
     .stTextInput>div>div>input {{ background-color: {box_bg} !important; color: {text_color} !important; border: 2px solid {box_border} !important; border-radius: 10px !important; }}
-    .stCheckbox, .stMultiSelect, div[data-testid="stExpander"], div[data-testid="stFileUploader"] {{ background: {box_bg} !important; border: 2px solid {box_border} !important; box-shadow: 0px 5px 15px {box_shadow} !important; border-radius: 14px !important; padding: 18px !important; margin-bottom: 20px !important; }}
+    .stCheckbox, .stMultiSelect, div[data-testid="stExpander"], div[data-testid="stFileUploader"], .lg-trick-box {{ background: {box_bg} !important; border: 2px solid {box_border} !important; box-shadow: 0px 5px 15px {box_shadow} !important; border-radius: 14px !important; padding: 18px !important; margin-bottom: 20px !important; }}
+    .lg-trick-box {{ border-color: #ff007f !important; box-shadow: 0px 5px 15px rgba(255, 0, 127, 0.25) !important; }}
     .stButton>button {{ background: linear-gradient(135deg, #ff007f 0%, #aa0055 100%) !important; color: #ffffff !important; border: 2px solid #ff007f !important; border-radius: 12px !important; font-weight: bold; }}
     .futuristic-cyber-footer {{ background: {footer_bg}; border: 2px solid #00f0ff; color: {footer_text} !important; padding: 35px; text-align: center; border-radius: 20px; margin-top: 65px; font-family: 'Orbitron', sans-serif; }}
     .footer-dev {{ color: #ff007f; font-size: 26px; font-weight: bold; }}
@@ -175,6 +180,14 @@ if uploaded_file is not None:
     is_modern = legacy_broadcast_tag is not None and legacy_broadcast_tag.text
     
     st.info(f"{t['success_read']} **{model_name}**")
+
+    # 💡 صندوق النصيحة الفنية لـ LG المستوحى من خبرة المستخدم
+    st.markdown(f"""
+        <div class="lg-trick-box">
+            <h4 style="color: #ff007f; margin-top:0;">{t['lg_trick_title']}</h4>
+            <p style="white-space: pre-line; margin-bottom:0; font-size:14px;">{t['lg_trick_text']}</p>
+        </div>
+    """, unsafe_allow_html=True)
     
     col_opt1, col_opt2 = st.columns(2)
     with col_opt1:
@@ -186,15 +199,13 @@ if uploaded_file is not None:
     report_changes = []
     injected_report = []
     
-    # محرك الـ AI للتعرف على القمر الصناعي الذكي
     detected_satellite = "Nilesat 7.0°W"
     
-    # 1. فحص وتحديث الترددات مع إضافة تاريخ التحديث وحقن القنوات "تبع النايل سات"
+    # 1. فحص وتحديث الترددات وحقن القنوات "تبع النايل سات"
     if is_modern:
         broadcast_data = json.loads(legacy_broadcast_tag.text)
         channels_list = broadcast_data.get("channelList", [])
         
-        # حقن القنوات الجديدة في الـ JSON للموديل الحديث
         if add_new_channels:
             for nch in NILESAT_NEW_CHANNELS:
                 new_node = {
@@ -252,7 +263,6 @@ if uploaded_file is not None:
                     
             channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_str": item_str})
 
-        # حقن القنوات الجديدة لملف الـ 32 بوصة نصياً
         if add_new_channels:
             for nch in NILESAT_NEW_CHANNELS:
                 new_item_raw = f"<ITEM>\r\n<prNum>0</prNum>\r\n<vchName>{nch['name']}</vchName>\r\n<frequency>{nch['frequency']}</frequency>\r\n<serviceType>1</serviceType>\r\n</ITEM>"
@@ -303,7 +313,7 @@ if uploaded_file is not None:
                 with st.expander(f"{is_user_chosen}{cat_name} — ({len(ch_list)} {t['channels_count']})"):
                     st.write(", ".join(ch_list))
 
-    # عرض الجداول التفاعلية المحدثة على الموقع تبعا لقمر النايل سات
+    # عرض الجداول التفاعلية على الموقع
     st.write("---")
     if report_changes:
         st.write(f"### 🔁 سجل صيانة وتحديث الترددات (مضافاً إليها الفئة وتاريخ التحديث) — تبع الـ {detected_satellite}:")
@@ -313,7 +323,7 @@ if uploaded_file is not None:
         st.write(f"### 🆕 تقرير القنوات الجديدة المزروعة وتاريخ صدورها ومصدرها (مضافاً إليها التردد) — تبع الـ {detected_satellite}:")
         st.table(injected_report)
 
-    # بناء التقارير والملفات النهائية للتحميل مع حقول التواريخ والترددات
+    # بناء التقارير والملفات النهائية للتحميل
     text_report = f"{t['txt_header']} ({model_name})\n"
     text_report += f"🛰️ القمر الصناعي المكتشف بواسطة الـ AI: {detected_satellite}\n"
     text_report += "==================================================\n"
@@ -328,7 +338,6 @@ if uploaded_file is not None:
     text_report += "\n==================================================\n\n"
     
     if is_modern:
-        # الشاشات الحديثة
         final_list_modern = []
         for index, ch in enumerate(channels_sorted, start=1):
             node = ch["raw_node"]
@@ -339,7 +348,6 @@ if uploaded_file is not None:
         legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
         final_xml_bytes = ET.tostring(root, encoding="utf-8")
     else:
-        # الشاشات القديمة
         modified_text_output = file_text_original
         item_strings_sorted = []
         
