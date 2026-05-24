@@ -30,8 +30,8 @@ UI_TEXT = {
         'multiselect_label': "اضغط هنا لبناء تسلسل خطة العرض التفاعلي للفئات:",
         'preview_title': "📊 مجسم المعاينة الحية لتوزيع القنوات الحالي:",
         'channels_count': "قناة",
-        'freq_table_title': "🔁 سجل صيانة وتحديث الترددات (القديم مقابل الجديد):",
-        'new_ch_added_title': "🆕 تقرير القنوات الجديدة المزروعة وتاريخ صدورها ومصدرها:",
+        'freq_table_title': "🔁 سجل صيانة وتحديث الترددات (مضافاً إليها الفئة):",
+        'new_ch_added_title': "🆕 تقرير القنوات الجديدة المزروعة وتاريخ صدورها ومصدرها (مضافاً إليها التردد):",
         'ready_msg': "🌌 تم دمج مصفوفة RAMBO وإعادة الهيكلة بنجاح! الملفات جاهزة للتحميل:",
         'btn_download_tll': "📥 تحميل ملف الشاشة النهائي (GlobalClone00001.TLL)",
         'btn_download_txt': "📄 تحميل تقرير الترتيب كملف نصي (Channels_List.txt)",
@@ -57,8 +57,8 @@ UI_TEXT = {
         'multiselect_label': "Select categories one by one to configure your linear priority:",
         'preview_title': "📊 Channel Grid Live 3D Preview Dashboard:",
         'channels_count': "Channels",
-        'freq_table_title': "🔁 Frequency Correction Logs (Old vs New):",
-        'new_ch_added_title': "🆕 Injected New Channels Report (Launch Date & Source):",
+        'freq_table_title': "🔁 Frequency Correction Logs (With Category Included):",
+        'new_ch_added_title': "🆕 Injected New Channels Report (With Frequency Included):",
         'ready_msg': "🌌 Quantum Matrix Deployment Successful! Assets ready for transfer:",
         'btn_download_tll': "📥 Download Final TV Configuration (GlobalClone00001.TLL)",
         'btn_download_txt': "📄 Download Sorting Text Diagnostics (Channels_List.txt)",
@@ -104,7 +104,7 @@ else:
 
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght Milford;900&family=Cairo:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Cairo:wght@400;700&display=swap');
     .main {{ background: {bg_style} !important; color: {text_color} !important; font-family: { "'Cairo', sans-serif" if st.session_state.lang == 'ar' else "'Orbitron', sans-serif" }; }}
     h1 {{ color: #ff007f !important; text-shadow: 0 0 10px #ff007f, 0 0 25px rgba(255, 0, 127, 0.4) !important; text-align: center; font-weight: 900; margin-top: 5px; }}
     h3, p, label, .stMarkdown, .stInfo, div[data-testid="stMarkdownContainer"] p {{ color: {text_color} !important; text-shadow: {text_shadow_glow}; }}
@@ -120,7 +120,7 @@ st.markdown(f"""
 st.title(t['title'])
 st.markdown(f"<h3>{t['subtitle']}</h3>", unsafe_allow_html=True)
 
-# 🛰️ قاعدة البيانات المرجعية للترددات وتحديثاتها الحية
+# 🛰️ قاعدة البيانات المرجعية لتحديث الترددات الحية
 LIVE_SATELLITE_DB = {
     "AL HAYAT": {"frequency": 12207, "polarization": "Vertical"},
     "SAT-7 KIDS": {"frequency": 11353, "polarization": "Vertical"},
@@ -132,7 +132,7 @@ LIVE_SATELLITE_DB = {
     "QATAR TV HD": {"frequency": 10834, "polarization": "Horizontal"}
 }
 
-# 🆕 قنوات جديدة كلياً سيتم زرعها وحقنها في الملف تلقائياً عند تفعيل الخيار
+# 🆕 قنوات جديدة كلياً سيتم زرعها وحقنها في الملف تلقائياً عند تفعيل الخيار مع إضافة التردد
 NEW_CHANNELS_TO_INJECT = [
     {"name": "RAMBO ACTION HD", "frequency": 10834, "polarization": "Horizontal", "launch_date": "2026-01-15", "source": "Nilesat Official"},
     {"name": "MISHMISH CINEMA", "frequency": 11938, "polarization": "Vertical", "launch_date": "2026-04-10", "source": "KingOfSat Database"},
@@ -190,12 +190,12 @@ if uploaded_file is not None:
     report_changes = []
     injected_report = []
     
-    # 1. استخراج القنوات وتحديث الترددات حياً (القديم مقابل الجديد) لكل من الشاشتين
+    # 1. معالجة وتحديث القنوات وحقن الجديدة لكلا الشاشتين
     if is_modern:
         broadcast_data = json.loads(legacy_broadcast_tag.text)
         channels_list = broadcast_data.get("channelList", [])
         
-        # زرع القنوات الجديدة في الـ JSON إذا تم التفعيل
+        # زرع القنوات الجديدة في الـ JSON للموديل الحديث
         if add_new_channels:
             for nch in NEW_CHANNELS_TO_INJECT:
                 new_node = {
@@ -203,7 +203,7 @@ if uploaded_file is not None:
                     "majorNumber": 0, "serviceType": "1", "scrambled": "false", "symbolRate": "27500"
                 }
                 channels_list.append(new_node)
-                injected_report.append({"الاسم": nch["name"], "التاريخ": nch["launch_date"], "المصدر": nch["source"]})
+                injected_report.append({"اسم القناة": nch["name"], "التردد": str(nch["frequency"]), "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]})
         
         for idx, ch in enumerate(channels_list):
             ch_name = ch.get("channelName", "Unknown")
@@ -213,14 +213,14 @@ if uploaded_file is not None:
             if update_freq and name_up in LIVE_SATELLITE_DB:
                 live_freq = str(LIVE_SATELLITE_DB[name_up]["frequency"])
                 if old_freq != live_freq:
-                    report_changes.append({"القناة": ch_name, "التردد القديم": old_freq, "التردد الجديد": live_freq})
+                    report_changes.append({"القناة": ch_name, "الفئة (Category)": ai_classify(ch_name), "التردد القديم": old_freq, "التردد الجديد": live_freq})
                     ch["frequency"] = int(live_freq)
                     ch["polarization"] = LIVE_SATELLITE_DB[name_up]["polarization"]
                     old_freq = live_freq
                     
             channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_node": ch})
     else:
-        # الموديل القديم (32 بوصة) عبر الـ Regex النصي الصارم
+        # الموديل القديم (32 بوصة)
         item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text_original, re.DOTALL)
         
         for idx, item_str in enumerate(item_blocks):
@@ -233,20 +233,18 @@ if uploaded_file is not None:
             if update_freq and name_up in LIVE_SATELLITE_DB:
                 live_freq = str(LIVE_SATELLITE_DB[name_up]["frequency"])
                 if old_freq != live_freq:
-                    report_changes.append({"القناة": ch_name, "التردد القديم": old_freq, "التردد الجديد": live_freq})
-                    # تحديث التردد نصياً داخل البلوك الخاص بالقناة
+                    report_changes.append({"القناة": ch_name, "الفئة (Category)": ai_classify(ch_name), "التردد القديم": old_freq, "التردد الجديد": live_freq})
                     item_str = re.sub(r'<frequency>\d+</frequency>', f'<frequency>{live_freq}</frequency>', item_str)
                     old_freq = live_freq
                     
             channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_str": item_str})
 
-        # حقن وزرع القنوات الجديدة لملف الـ 32 بوصة إذا تم التفعيل
+        # زرع وحقن القنوات الجديدة لملف الـ 32 بوصة نصياً
         if add_new_channels:
             for nch in NEW_CHANNELS_TO_INJECT:
-                # بناء هيكل ITEM نصي متكامل ومماثل تماماً لملف الـ 32 بوصة الأصلي لتقبله الشاشة فوراً
                 new_item_raw = f"<ITEM>\r\n<prNum>0</prNum>\r\n<vchName>{nch['name']}</vchName>\r\n<frequency>{nch['frequency']}</frequency>\r\n<serviceType>1</serviceType>\r\n</ITEM>"
                 channels_to_sort.append({"id": len(channels_to_sort), "name": nch["name"], "freq": str(nch["frequency"]), "raw_str": new_item_raw})
-                injected_report.append({"الاسم": nch["name"], "التاريخ": nch["launch_date"], "المصدر": nch["source"]})
+                injected_report.append({"اسم القناة": nch["name"], "التردد": str(nch["frequency"]), "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]})
 
     # محرك البحث الذكي
     st.write("---")
@@ -268,7 +266,7 @@ if uploaded_file is not None:
     for cat in ALL_AVAILABLE_CATEGORIES:
         if cat not in final_priority: final_priority.append(cat)
 
-    # فرز القنوات الكلي
+    # فرز القنوات الكلي بناءً على الفئة
     channels_sorted = sorted(channels_to_sort, key=lambda x: final_priority.index(ai_classify(x["name"])))
     
     # المعاينة الحية للفئات
@@ -290,7 +288,7 @@ if uploaded_file is not None:
                 with st.expander(f"{is_user_chosen}{cat_name} — ({len(ch_list)} {t['channels_count']})"):
                     st.write(", ".join(ch_list))
 
-    # عرض الجداول على الويب سايت
+    # عرض الجداول على الويب سايت بعد تحديث الأعمدة المطلوبة
     if report_changes:
         st.write(f"### {t['freq_table_title']}")
         st.table(report_changes)
@@ -299,17 +297,17 @@ if uploaded_file is not None:
         st.write(f"### {t['new_ch_added_title']}")
         st.table(injected_report)
 
-    # بناء التقارير والملفات النهائية
+    # بناء التقارير والملفات النهائية متضمنة الإضافات الجديدة
     text_report = f"{t['txt_header']} ({model_name})\n"
     text_report += "==================================================\n"
     if report_changes:
-        text_report += "\n🔄 [سجل الترددات التي تم تحديثها من القديم للجديد]:\n"
+        text_report += "\n🔄 [سجل الترددات التي تم تحديثها من القديم للجديد متضمناً الفئة]:\n"
         for change in report_changes:
-            text_report += f"- القناة: {change['القناة']:<20} | التردد القديم: {change['التردد القديم']:<6} -> التردد الجديد: {change['التردد الجديد']}\n"
+            text_report += f"- القناة: {change['القناة']:<20} | الفئة: {change['الفئة (Category)']:<20} | التردد: {change['التردد القديم']:<6} -> {change['التردد الجديد']}\n"
     if injected_report:
-        text_report += "\n🆕 [القنوات الجديدة المزروعة في الملف]:\n"
+        text_report += "\n🆕 [القنوات الجديدة المزروعة في الملف متضمناً التردد]:\n"
         for inch in injected_report:
-            text_report += f"- قناة: {inch['الاسم']:<20} | تاريخ الصدور: {inch['التاريخ']:<12} | المصدر: {inch['المصدر']}\n"
+            text_report += f"- قناة: {inch['اسم القناة']:<20} | التردد: {inch['التردد']:<7} | تاريخ الصدور: {inch['تاريخ الصدور']:<12} | المصدر: {inch['المصدر']}\n"
     text_report += "\n==================================================\n\n"
     
     if is_modern:
@@ -324,7 +322,7 @@ if uploaded_file is not None:
         legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
         final_xml_bytes = ET.tostring(root, encoding="utf-8")
     else:
-        # الشاشات القديمة (الحقن المباشر في النص الأصلي لتجنب خطأ التهيئة)
+        # الشاشات القديمة (الحقن المباشر في النص الأصلي)
         modified_text_output = file_text_original
         item_strings_sorted = []
         
