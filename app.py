@@ -2,7 +2,7 @@ import streamlit as st
 import xml.etree.ElementTree as ET
 import json
 
-# 1. إعدادات واجهة الموقع وهويته (ألوان قريبة من LG)
+# 1. إعدادات واجهة الموقع وهويته
 st.set_page_config(page_title="LGAISort - منسق قنوات LG الذكي", page_icon="📺", layout="wide")
 
 st.markdown("""
@@ -14,7 +14,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("📺 LGAISort - المنسق الذكي لشاشات LG webOS")
-st.subheader("تحكم كامل بالترتيب (تلقائي أو يدوي) مع طباعة تقرير القنوات!")
+st.subheader("رتب فئات قنواتك باختيارك اليدوي (الفئة التي تختارها أولاً ستكون في صدارة التلفزيون!)")
 
 # قاعدة البيانات الحية للترددات المحدثة
 LIVE_SATELLITE_DB = {
@@ -25,7 +25,7 @@ LIVE_SATELLITE_DB = {
     "CTV": {"frequency": 12022, "polarization": "Vertical", "symbolRate": 27500}
 }
 
-# دالة التصنيف التلقائي بالذكاء الاصطناعي والكلمات المفتاحية
+# دالة التصنيف بالذكاء الاصطناعي
 def ai_classify(channel_name):
     name = channel_name.upper()
     if any(w in name for w in ["CTV", "AGHAPY", "MESAT", "KARMA", "NOURSAT"]): return "⛪ قنوات مسيحية"
@@ -37,7 +37,7 @@ def ai_classify(channel_name):
     if any(w in name for w in ["NEWS", "JAZEERA", "ARABIYA", "HADATH", "CAIRO"]): return "📰 أخبار وسياسة"
     return "📺 قنوات عامة ومنوعات"
 
-# قائمة كل الفئات المتاحة في السيستم
+# قائمة الفئات المتاحة
 ALL_AVAILABLE_CATEGORIES = [
     "⛪ قنوات مسيحية", "🕌 قنوات إسلامية", "🎬 مسلسلات ودراما", 
     "🍿 أفلام عربية وأجنبية", "👶 أطفال وكرتون", "⚽ رياضة", 
@@ -62,29 +62,24 @@ if uploaded_file is not None:
     
     st.info(f"✅ تم قراءة الملف بنجاح. بلد البث المهيأ في الشاشة: **{country_setting}**.")
 
-    # ميزة التحكم في الترتيب (تلقائي أم على مزاجك)
     st.write("---")
-    st.write("### 🛠️ إعدادات ترتيب الفئات (Categories):")
-    sort_mode = st.radio("اختر طريقة ترتيب الفئات الأساسية:", ["🚀 ترتيب تلقائي ذكي (Default)", "🎛️ ترتيب يدوي مخصص على مزاجك (Manual)"])
+    st.write("### 🎛️ حدد ترتيب الفئات المخصصة لك:")
+    st.write("💡 *ملحوظة: اضغط على الفئات بالترتيب الذي تفضله. الفئة التي تضغط عليها أولاً ستأخذ الترتيب الأول في الشاشة.*")
     
-    if sort_mode == "🚀 ترتيب تلقائي ذكي (Default)":
-        final_priority = ALL_AVAILABLE_CATEGORIES
-        st.success("السيستم سيرتب القنوات تلقائياً: مسيحية -> إسلامية -> مسلسلات -> أفلام -> أطفال...")
-    else:
-        st.write("قم باختيار وترتيب الفئات حسب الأولوية التي تريدها (الأول فالأول):")
-        # اختيار يدوي تفاعلي متعدد
-        user_selection = st.multiselect(
-            "اضغط واختار الفئات بالترتيب الذي تفضله لتبدأ بها شاشتك:",
-            options=ALL_AVAILABLE_CATEGORIES,
-            default=ALL_AVAILABLE_CATEGORIES
-        )
-        final_priority = user_selection
-        # إضافة الفئات المتبقية لو المستخدم نسي يختارها عشان متضيعش القنوات
-        for cat in ALL_AVAILABLE_CATEGORIES:
-            if cat not in final_priority:
-                final_priority.append(cat)
+    # اختيار تفاعلي يعتمد تماماً على ترتيب الضغط والاختيار للمستخدم
+    user_priority = st.multiselect(
+        "اضغط هنا واختر الفئات واحدة تلو الأخرى حسب ترتيبك المفضل:",
+        options=ALL_AVAILABLE_CATEGORIES,
+        default=[] # هيبدأ فاضي والمستخدم يختار بالترتيب اللي على مزاجه
+    )
+    
+    # بناء القائمة النهائية: الترتيب اللي اختاره المستخدم + أي فئة متبقية لم يختارها (عشان قنواتها متضيعش وتتحط في الآخر)
+    final_priority = list(user_priority)
+    for cat in ALL_AVAILABLE_CATEGORIES:
+        if cat not in final_priority:
+            final_priority.append(cat)
 
-    # معالجة وتصنيف القنوات
+    # معالجة القنوات
     categorized = {}
     report_changes = []
     
@@ -102,27 +97,30 @@ if uploaded_file is not None:
                 ch["polarization"] = live["polarization"]
                 ch["symbolRate"] = live["symbolRate"]
 
-    # عرض الفئات وأعدادها وأسمائها
+    # عرض الفئات حسب الترتيب الجديد المختار
     st.write("---")
-    st.write("### 📊 استعراض القنوات المكتشفة داخل كل فئة:")
+    st.write("### 📊 استعراض القنوات بناءً على ترتيبك الحالي لفئات البث:")
     col1, col2 = st.columns(2)
     for i, cat_name in enumerate(final_priority):
         if cat_name in categorized:
             ch_list = categorized[cat_name]
             target_col = col1 if i % 2 == 0 else col2
             with target_col:
-                with st.expander(f"{cat_name} — (يحتوي على {len(ch_list)} قناة)"):
+                # إبراز الفئات التي اختارها المستخدم أولاً
+                is_user_chosen = "⭐ " if cat_name in user_priority else ""
+                with st.expander(f"{is_user_chosen}{cat_name} — (يحتوي على {len(ch_list)} قناة)"):
                     st.write(", ".join(ch_list))
                     
     if update_freq and report_changes:
         st.write("### 🔁 جدول الترددات المحدثة:")
         st.table(report_changes)
 
-    # الترتيب الفعلي للقنوات بناءً على اختيار المستخدم (التلقائي أو اليدوي)
+    # الترتيب الفعلي للقنوات في ملف الشاشة بناءً على الترتيب المختار بالضغط
     channels_sorted = sorted(channels, key=lambda x: final_priority.index(ai_classify(x.get("channelName", ""))))
     
-    # إعادة ترقيم القنوات من 1 تصاعدياً وبناء ملف النص
+    # بناء ملف التقرير النصي الترتيبي (.TXT)
     text_report = f"📄 تقرير الترتيب النهائي لقنوات شاشة LG ({country_setting})\n"
+    text_report += f"🛠️ ترتيب الفئات المختار: " + " -> ".join([c.split()[-1] for c in final_priority]) + "\n"
     text_report += "==================================================\n\n"
     
     for index, ch in enumerate(channels_sorted, start=1):
@@ -135,9 +133,9 @@ if uploaded_file is not None:
     legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
     final_xml = ET.tostring(root, encoding="utf-8")
     
-    # أزرار التحميل النهائية
+    # أزرار التحميل
     st.write("---")
-    st.success("🎉 كل شيء جاهز الآن! يمكنك تحميل ملف التلفزيون وملف التقرير النصي:")
+    st.success("🎉 الترتيب تم بنجاح! حمل الملفات الآن وضعتها على الفلاشة:")
     
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
