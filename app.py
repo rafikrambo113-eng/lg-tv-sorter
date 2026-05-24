@@ -11,7 +11,7 @@ st.markdown("""
     h1 { color: #a50034; text-align: center; font-family: 'Cairo', sans-serif; }
     .stButton>button { background-color: #a50034; color: white; border-radius: 8px; width: 100%; }
     </style>
-""", unsafe_style_code=True)
+""", unsafe_allow_html=True)
 
 st.title("📺 LGAISort - المنسق الذكي لشاشات LG webOS")
 st.subheader("ارفع ملف القنوات (.TLL)، سيتعرف الذكاء الاصطناعي على الفئات ويحدث الترددات فوراً!")
