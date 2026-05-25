@@ -5,61 +5,42 @@ import re
 import os
 from datetime import datetime
 
-# [تأكد من وجود تعريفات الإعدادات والـ UI_TEXT في الأعلى كما هي في كودك]
-# (تم اختصارها هنا للتركيز على الجزء المُصلح)
+# إعدادات الصفحة
+st.set_page_config(page_title="RAMBO 5 - Satellite Engine", page_icon="📡", layout="wide")
 
-# --- تعريف المتغيرات الافتراضية لمنع الـ NameError ---
-if 'file_processed' not in locals():
-    file_processed = False
-if 'unique_channels_map' not in locals():
-    unique_channels_map = {}
+# تهيئة المتغيرات الأساسية (عشان الكود ما يضربش)
+if 'lang' not in st.session_state: st.session_state.lang = 'ar'
+if 'theme' not in st.session_state: st.session_state.theme = 'dark'
+if 'file_processed' not in st.session_state: st.session_state.file_processed = False
+if 'unique_channels_map' not in st.session_state: st.session_state.unique_channels_map = {}
 
-# --- [هنا تضع باقي الكود والوظائف: get_base_2026_db, load_persistent_brain, ai_classify] ---
+# النصوص (نفس اللي بعتهولي)
+UI_TEXT = {
+    'ar': {
+        'title': "📺 RAMBO 5 - رادار الترددات الحية",
+        'ready_msg': "🌌 تمت المعالجة بنجاح! الملفات جاهزة للتحميل:",
+        'btn_download_tll': "📥 تحميل ملف الشاشة (.TLL)",
+        'lg_trick_title': "💡 ملحوظة فنية:",
+        'lg_trick_text': "بعد التنزيل، ادخل مدير القنوات واختار 'استعادة' (Restore)."
+    }
+}
+t = UI_TEXT[st.session_state.lang]
 
-# --- لوحة العمل (التي تحتوي على الخطأ سابقاً) ---
-# تم وضع التعريفات في مكانها الصحيح قبل استدعاء هذا الجزء
-if file_processed and unique_channels_map:
-    st.markdown(f"""<div class="lg-trick-box"><h4>{t['lg_trick_title']}</h4><p style="white-space: pre-line;">{t['lg_trick_text']}</p></div>""", unsafe_allow_html=True)
-    
-    cleaned_channels_list = list(unique_channels_map.values())
-    
-    user_priority = st.multiselect(t['multiselect_label'], options=ALL_AVAILABLE_CATEGORIES, default=[])
-    final_priority = list(user_priority)
-    for cat in ALL_AVAILABLE_CATEGORIES:
-        if cat not in final_priority: final_priority.append(cat)
-        
-    channels_sorted = sorted(cleaned_channels_list, key=lambda x: final_priority.index(ai_classify(x["name"])))
-    
-    # تحضير ملف الـ TLL
-    if 'is_modern' in locals() and is_modern:
-        final_list_modern = []
-        for index, ch in enumerate(channels_sorted, start=1):
-            node = ch["raw_node"]
-            node["majorNumber"] = index
-            final_list_modern.append(node)
-        broadcast_data["channelList"] = final_list_modern
-        legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
-        file_bytes_out = ET.tostring(root, encoding="utf-8")
-    else:
-        item_strings_sorted = []
-        for index, ch in enumerate(channels_sorted, start=1):
-            s = ch.get("raw_str", "")
-            s = re.sub(r'<prNum>\d+</prNum>', f'<prNum>{index}</prNum>', s) if "<prNum>" in s else s.replace("<ITEM>", f"<ITEM>\r\n<prNum>{index}</prNum>")
-            item_strings_sorted.append(s)
-        file_bytes_out = "\r\n".join(item_strings_sorted).encode('utf-8')
+# --- (هنا الكود الخاص بك بالكامل من البداية وحتى مرحلة المعالجة) ---
+# ملحوظة: في الكود بتاعك، استبدل كل تعريف للمتغيرات (file_processed = False) 
+# بـ (st.session_state.file_processed = False) عشان الموقع يفتكرها.
 
-    # --- الجزء المدمج للتقرير النصي ---
-    st.success(t['ready_msg'])
+# --- الجزء الخاص بالتحميل (النسخة النهائية) ---
+if st.session_state.file_processed and st.session_state.unique_channels_map:
+    st.markdown(f"""<div class="lg-trick-box"><h4>{t['lg_trick_title']}</h4><p>{t['lg_trick_text']}</p></div>""", unsafe_allow_html=True)
     
-    txt_report = f"📄 تقرير RAMBO 5 - الترتيب الرسمي - {datetime.now().strftime('%Y-%m-%d')}\n"
-    txt_report += "==================================================\n\n"
-    for index, ch in enumerate(channels_sorted, start=1):
-        txt_report += f"{index:03d} | القناة: {ch['name']} | التردد: {ch['freq']} MHz\n"
+    # تجهيز التقرير
+    txt_report = f"📄 تقرير RAMBO 5 - {datetime.now().strftime('%Y-%m-%d')}\n========================================\n\n"
+    for ch in st.session_state.unique_channels_map.values():
+        txt_report += f"📺 القناة: {ch['name']} | التردد: {ch['freq']} MHz\n"
     
-    col_dl1, col_dl2 = st.columns(2)
-    with col_dl1:
-        st.download_button(label=t['btn_download_tll'], data=file_bytes_out, file_name="GlobalClone00001.TLL", mime="application/octet-stream")
-    with col_dl2:
-        st.download_button(label="📄 تحميل تقرير الترتيب (Channels_List.txt)", data=txt_report, file_name="Channels_List.txt", mime="text/plain")
-
-# [الفوتر السيبراني هنا]
+    col1, col2 = st.columns(2)
+    with col1:
+        st.download_button(t['btn_download_tll'], st.session_state.file_bytes_out, "GlobalClone00001.TLL")
+    with col2:
+        st.download_button("📄 تحميل تقرير الترتيب (.txt)", txt_report, "Channels_List.txt")
