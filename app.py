@@ -266,4 +266,5 @@ def get_base_2026_db():
         "ON TIME SPORTS 1 HD":{"frequency":11861, "polarization": "Vertical",   "date": "2026-05-18", "source": "URC Egypt",           "category": "⚽ رياضة"},
         "ON TIME SPORTS 2 HD":{"frequency":11843, "polarization": "Vertical",   "date": "2026-05-18", "source": "URC Egypt",           "category": "⚽ رياضة"},
         "BEIN SPORTS HD1":   {"frequency": 12226, "polarization": "Horizontal", "date": "2026-05-15", "source": "beIN Sports",         "category": "⚽ رياضة"},
-        "WANNASAH HD":
+        "WANNASAH HD":       {"frequency": 11938, "polarization": "Vertical",   "date": "2026-05-24", "source": "Nilesat Transponder", "category": "👶 أطفال وكرتون"},
+        "SPACE TOON":        {"frequency": 11977, "polarization": "Horizontal", "date": "2026-04-20", "source": "FlySat",              "category":
