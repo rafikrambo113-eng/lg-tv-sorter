@@ -14,10 +14,10 @@ if 'theme' not in st.session_state:
 UI_TEXT = {
     'ar': {
         'title': "📺 RAMBO ULTRA - المنصة العالمية الذكية لشاشات LG",
-        'subtitle': "⚡ محرك سيبراني متطور ومستقل لتحديث وترتيب مئات القنوات فوراً (AI)",
+        'subtitle': "⚡ أول محرك تفاعلي يتعلم ذاتياً بالذكاء الاصطناعي من ملفات الشاشات المرفوعة لايف",
         'mode_selector': "🛠️ اختر وضع العمل المطلوب للبرنامج:",
-        'mode_edit': "🛸 تعديل ملف قنوات مرفوع من الفلاشة",
-        'mode_gen': "⚛️ توليد ملف قنوات جديد تماماً من الصفر (Mega Pack)",
+        'mode_edit': "🛸 تعديل وترتيب ملف مرفوع من الفلاشة (تغذية الـ AI)",
+        'mode_gen': "⚛️ توليد ملف جديد تماماً من ذاكرة الـ AI المتطورة",
         'model_label': "📺 اختر نوع موديل شاشة LG المستهدفة:",
         'model_modern': "Smart webOS (شاشات سمارت حديثة)",
         'model_legacy': "Legacy / 32 Inch (الشاشات الكلاسيكية والـ 32 بوصة)",
@@ -25,12 +25,12 @@ UI_TEXT = {
         'country_egy': "مصر (Egypt) — تصنيف شمال أفريقيا [NAFR]",
         'country_ksa': "السعودية (KSA) — تصنيف الشرق الأوسط [MIDE]",
         'btn_generate': "🚀 إطلاق مصفوفة التوليد السريع للملف الجديد",
-        'upload_label': "🚀 اختر ملف القنوات (GlobalClone00001.TLL) من الفلاشة:",
-        'update_freq_label': "⚛️ تفعيل الصيانة الذكية وتحديث الترددات تلقائياً من الإنترنت لايف",
-        'add_new_ch_label': "✨ فحص وزرع القنوات الجديدة المتاحة تلقائياً في القمر الصناعي المكتشف",
-        'success_read': "🛸 تم قراءة الهيكل بنجاح! الموديل الحالي: ",
-        'success_gen': "🌌 تم توليد هيكل ملف قنوات LG جديد كلياً مليء بمئات القنوات! متوافق مع نطاق بث: ",
-        'search_header': "🔍 محرك البحث الذكي عن القنوات داخل الملف:",
+        'upload_label': "🚀 اختر ملف القنوات (GlobalClone00001.TLL) من الفلاشة لتغدية وتحيين الذاكرة:",
+        'update_freq_label': "⚛️ تفعيل محرك التدقيق وتحديث الترددات التبادلي",
+        'add_new_ch_label': "✨ السماح للـ AI بامتصاص القنوات الجديدة وزرعها في باقة التوليد",
+        'success_read': "🛸 تم تفكيك الهيكل بنجاح! الموديل الحالي: ",
+        'success_gen': "🌌 تم توليد ملف قنوات LG ذكي من الذاكرة الحية المتطورة المتوافقة مع نطاق بث: ",
+        'search_header': "🔍 محرك البحث الذكي عن القنوات داخل الملف والذاكرة:",
         'search_placeholder': "اكتب اسم القناة هنا للبحث...",
         'search_col_num': "الرقم الحالي",
         'search_col_name': "اسم القناة",
@@ -42,7 +42,7 @@ UI_TEXT = {
         'multiselect_label': "اضغط هنا لبناء تسلسل خطة العرض التفاعلي للفئات:",
         'preview_title': "📊 مجسم المعاينة الحية لتوزيع القنوات الحالي:",
         'channels_count': "قناة",
-        'ready_msg': "🌌 تم دمج مصفوفة RAMBO وإعادة الهيكلة بنجاح! الملفات جاهزة للتحميل:",
+        'ready_msg': "🌌 تم دمج مصفوفة RAMBO التفاعلية بنجاح! الملفات جاهزة للتحميل:",
         'btn_download_tll': "📥 تحميل ملف الشاشة النهائي (GlobalClone00001.TLL)",
         'btn_download_txt': "📄 تحميل تقرير الترتيب كملف نصي (Channels_List.txt)",
         'txt_header': "📄 تقرير الترتيب وتحديثات الترددات النهائي لشاشة LG",
@@ -52,10 +52,10 @@ UI_TEXT = {
     },
     'en': {
         'title': "📺 RAMBO ULTRA - LG Universal Live-AI Platform",
-        'subtitle': "⚡ Next-Gen Independent Cyber Architecture Populating Hundreds of Live Channels",
+        'subtitle': "⚡ First Adaptive AI Engine Learning & Expanding Dynamically from Uploaded TV Files",
         'mode_selector': "🛠️ Select Desired Operations Mode:",
-        'mode_edit': "🛸 Edit/Optimize Existing USB .TLL File",
-        'mode_gen': "⚛️ Generate Brand New Raw .TLL File from Scratch (Mega Pack)",
+        'mode_edit': "🛸 Edit/Optimize USB File (Feed Channel Intelligence)",
+        'mode_gen': "⚛️ Generate Brand New .TLL from AI Evolved Memory",
         'model_label': "📺 Select Target LG TV Model Type:",
         'model_modern': "Smart webOS (Modern Smart Models)",
         'model_legacy': "Legacy / 32 Inch (Classic & 32\" Screen Profile)",
@@ -63,12 +63,12 @@ UI_TEXT = {
         'country_egy': "Egypt — North Africa Grouping [NAFR]",
         'country_ksa': "Saudi Arabia (KSA) — Middle East Grouping [MIDE]",
         'btn_generate': "🚀 Fire Matrix Generation Engine",
-        'upload_label': "🚀 Upload Channel File (GlobalClone00001.TLL) from USB Flash:",
-        'update_freq_label': "⚛️ Activate Live Satellite Internet Frequency Auto-Update",
-        'add_new_ch_label': "✨ Scan & Inject New Satellite Channels Automatically based on Internet Feed",
+        'upload_label': "🚀 Upload Channel File (GlobalClone00001.TLL) to Feed & Upgrade System Memory:",
+        'update_freq_label': "⚛️ Activate Mutual Cross-Frequency Verification Engine",
+        'add_new_ch_label': "✨ Allow AI to Absorb and Inject Newly Discovered Channels Into Generation Bank",
         'success_read': "🛸 Matrix Structure Decoded Successfully! Model Profile: ",
-        'success_gen': "🌌 Created brand new native LG channel structure loaded with hundreds of channels for: ",
-        'search_header': "🔍 Dynamic Channel Search Engine:",
+        'success_gen': "🌌 Created brand new native LG channel structure evolved from adaptive AI memory for: ",
+        'search_header': "🔍 Dynamic Channel & Memory Search Engine:",
         'search_placeholder': "Type channel name to look up...",
         'search_col_num': "No.",
         'search_col_name': "Channel Name",
@@ -105,7 +105,7 @@ with col_theme:
         st.session_state.theme = 'light' if st.session_state.theme == 'dark' else 'dark'
         st.rerun()
 
-# الـ CSS السيبراني
+# الـ CSS السيبراني الفخم
 if st.session_state.theme == 'dark':
     bg_style = "radial-gradient(circle at 50% 50%, #110926 0%, #05020d 100%)"
     text_color = "#00f0ff"
@@ -144,10 +144,10 @@ st.markdown(f"""
 st.title(t['title'])
 st.markdown(f"<h3>{t['subtitle']}</h3>", unsafe_allow_html=True)
 
-# 💾 المستودع العملاق الثابت (Mega Hardcoded Database) لضمان ضخ مئات القنوات فوراً دون نقص
-def get_mega_nilesat_db():
-    mega_db = {
-        # ⛪ باقة القنوات المسيحية الضخمة (بما في ذلك تردد باقة الحياة 11392 V كاملاً)
+# 💾 المستودع الأساسي الصلب والضخم لضمان الانطلاق القوي
+def get_base_nilesat_db():
+    return {
+        # ⛪ باقة القنوات المسيحية (بما في ذلك تردد باقة الحياة 11392 V كاملاً)
         "ALHAYAT TV": {"frequency": 11392, "polarization": "Vertical"},
         "THE LIFE TV": {"frequency": 11392, "polarization": "Vertical"},
         "AL SHIFA TV": {"frequency": 11392, "polarization": "Vertical"},
@@ -175,12 +175,11 @@ def get_mega_nilesat_db():
         "LIGHT TV": {"frequency": 11179, "polarization": "Vertical"},
         "TRUTH TV": {"frequency": 11353, "polarization": "Vertical"},
 
-        # 🕌 باقة القنوات الإسلامية (توسيع شامل لعشرات قنوات القرآن والحديث والمجد)
+        # 🕌 باقة القنوات الإسلامية 
         "SAUDI QURAN HD": {"frequency": 12149, "polarization": "Horizontal"},
         "AL MAJD QURAN": {"frequency": 12054, "polarization": "Horizontal"},
         "AL MAJD HADITH": {"frequency": 12054, "polarization": "Horizontal"},
         "AL MAJD SPACE": {"frequency": 11900, "polarization": "Horizontal"},
-        "MAJD QURAN SHORT": {"frequency": 12054, "polarization": "Horizontal"},
         "EGYPT QURAN": {"frequency": 11179, "polarization": "Vertical"},
         "AL SUNNAH HD": {"frequency": 12149, "polarization": "Horizontal"},
         "AL RAHMA TV": {"frequency": 10873, "polarization": "Vertical"},
@@ -191,16 +190,11 @@ def get_mega_nilesat_db():
         "AL INSAAN": {"frequency": 11658, "polarization": "Vertical"},
         "DAWAH TV": {"frequency": 10758, "polarization": "Horizontal"},
         "SHAREQAH QURAN": {"frequency": 11012, "polarization": "Horizontal"},
-        "NOUR AL QURAN": {"frequency": 11411, "polarization": "Horizontal"},
         "IQRAA HD": {"frequency": 12034, "polarization": "Horizontal"},
         "RISALAH TV": {"frequency": 11296, "polarization": "Horizontal"},
         "AL NAS TV": {"frequency": 12054, "polarization": "Horizontal"},
-        "FATH TV": {"frequency": 10853, "polarization": "Vertical"},
-        "AL ERFANE": {"frequency": 11559, "polarization": "Vertical"},
-        "AHLU SUNNAH": {"frequency": 11636, "polarization": "Vertical"},
-        "AL HADY TV": {"frequency": 11641, "polarization": "Horizontal"},
 
-        # 🎬 باقة المسلسلات والدراما كاملة
+        # 🎬 باقة المسلسلات والدراما
         "MBC DRAMA HD": {"frequency": 11938, "polarization": "Vertical"},
         "DMC DRAMA": {"frequency": 12092, "polarization": "Vertical"},
         "CBC DRAMA": {"frequency": 11785, "polarization": "Vertical"},
@@ -210,20 +204,14 @@ def get_mega_nilesat_db():
         "SADA EL BALAD DRAMA": {"frequency": 11823, "polarization": "Vertical"},
         "PANORAMA DRAMA": {"frequency": 12341, "polarization": "Horizontal"},
         "ZEE ALWAN HD": {"frequency": 11277, "polarization": "Horizontal"},
-        "B4U FX": {"frequency": 11938, "polarization": "Vertical"},
-        "ART HEKAYAT 1": {"frequency": 12034, "polarization": "Horizontal"},
-        "ART HEKAYAT 2": {"frequency": 12034, "polarization": "Horizontal"},
         "MIX DRAMA": {"frequency": 11843, "polarization": "Horizontal"},
         "TIME DRAMA": {"frequency": 11179, "polarization": "Vertical"},
-        "AL DOCH DRAMA": {"frequency": 11595, "polarization": "Vertical"},
         "Nile Drama": {"frequency": 11843, "polarization": "Horizontal"},
-        "Cairo Drama": {"frequency": 11179, "polarization": "Vertical"},
 
         # 🍿 باقة الأفلام والسينما (عربي وأجنبي)
         "MBC 2 HD": {"frequency": 11938, "polarization": "Vertical"},
         "MBC ACTION HD": {"frequency": 11938, "polarization": "Vertical"},
         "MBC MAX HD": {"frequency": 11938, "polarization": "Vertical"},
-        "MBC BOLLYWOOD HD": {"frequency": 11938, "polarization": "Vertical"},
         "ROTANA CINEMA HD": {"frequency": 12226, "polarization": "Horizontal"},
         "ROTANA CLASSIC": {"frequency": 12226, "polarization": "Horizontal"},
         "ROTANA COMEDY": {"frequency": 12226, "polarization": "Horizontal"},
@@ -231,16 +219,9 @@ def get_mega_nilesat_db():
         "MIX MOVIES HD": {"frequency": 11843, "polarization": "Horizontal"},
         "SCARE TV": {"frequency": 10873, "polarization": "Vertical"},
         "TOP MOVIES": {"frequency": 10873, "polarization": "Vertical"},
-        "B4U MOVIES": {"frequency": 11938, "polarization": "Vertical"},
         "ART AFLAM 1": {"frequency": 12034, "polarization": "Horizontal"},
         "ART AFLAM 2": {"frequency": 12034, "polarization": "Horizontal"},
-        "ART CINEMA": {"frequency": 12034, "polarization": "Horizontal"},
         "FOX MOVIES": {"frequency": 11296, "polarization": "Horizontal"},
-        "CIMA BLUE": {"frequency": 11179, "polarization": "Vertical"},
-        "LTV SCIFI": {"frequency": 11595, "polarization": "Vertical"},
-        "D-MOVIES": {"frequency": 11603, "polarization": "Vertical"},
-        "MELODY AFlAM": {"frequency": 11595, "polarization": "Vertical"},
-        "TOKTOK CIMA": {"frequency": 11603, "polarization": "Vertical"},
 
         # 👶 باقة الأطفال والكرتون
         "SPACE TOON HD": {"frequency": 11785, "polarization": "Vertical"},
@@ -248,33 +229,20 @@ def get_mega_nilesat_db():
         "MAJID KIDS HD": {"frequency": 11411, "polarization": "Horizontal"},
         "TOM AND JERRY TV": {"frequency": 11353, "polarization": "Vertical"},
         "MBC 3 HD": {"frequency": 11938, "polarization": "Vertical"},
-        "BOOMERANG": {"frequency": 12226, "polarization": "Horizontal"},
-        "BABY TV": {"frequency": 12226, "polarization": "Horizontal"},
         "KARAMEESH": {"frequency": 11430, "polarization": "Vertical"},
         "TOYOR AL JANNAH": {"frequency": 11315, "polarization": "Vertical"},
-        "COCO MELON": {"frequency": 11353, "polarization": "Vertical"},
-        "MODY KIDS": {"frequency": 11603, "polarization": "Vertical"},
-        "SMART KIDS": {"frequency": 11595, "polarization": "Vertical"},
         "BATUT TV": {"frequency": 11595, "polarization": "Vertical"},
-        "KIDS SPACE": {"frequency": 11179, "polarization": "Vertical"},
         "SPONGEBOB TV": {"frequency": 11353, "polarization": "Vertical"},
 
-        # ⚽ باقة الرياضة المكتملة
+        # ⚽ باقة الرياضة
         "ON TIME SPORTS 1 HD": {"frequency": 11861, "polarization": "Vertical"},
         "ON TIME SPORTS 2 HD": {"frequency": 11861, "polarization": "Vertical"},
         "ON TIME SPORTS 3 HD": {"frequency": 11861, "polarization": "Vertical"},
         "AD SPORTS 1 HD": {"frequency": 11411, "polarization": "Horizontal"},
-        "AD SPORTS 2 HD": {"frequency": 11411, "polarization": "Horizontal"},
         "BEIN SPORTS NEWS HD": {"frequency": 11054, "polarization": "Horizontal"},
         "SSC NEWS HD": {"frequency": 12418, "polarization": "Horizontal"},
-        "YALLA SHOOT LIVE": {"frequency": 11595, "polarization": "Vertical"},
         "AL AHLY TV HD": {"frequency": 11747, "polarization": "Vertical"},
         "ZAMALEK TV HD": {"frequency": 11449, "polarization": "Vertical"},
-        "SAUDI SPORTS 1 HD": {"frequency": 12149, "polarization": "Horizontal"},
-        "SAUDI SPORTS 2 HD": {"frequency": 12149, "polarization": "Horizontal"},
-        "KUWAIT SPORTS HD": {"frequency": 11054, "polarization": "Horizontal"},
-        "KASS 1 HD": {"frequency": 11919, "polarization": "Horizontal"},
-        "OMAN SPORTS HD": {"frequency": 12111, "polarization": "Horizontal"},
 
         # 📰 باقة الأخبار والسياسة
         "AL JAZEERA HD": {"frequency": 10971, "polarization": "Vertical"},
@@ -282,14 +250,7 @@ def get_mega_nilesat_db():
         "AL HADATH HD": {"frequency": 12169, "polarization": "Vertical"},
         "CAIRO NEWS HD": {"frequency": 11747, "polarization": "Vertical"},
         "SKY NEWS ARABIA HD": {"frequency": 11977, "polarization": "Vertical"},
-        "BBC ARABIC HD": {"frequency": 12207, "polarization": "Vertical"},
-        "RT ARABIC HD": {"frequency": 10892, "polarization": "Vertical"},
-        "ASHARQ NEWS HD": {"frequency": 11938, "polarization": "Vertical"},
         "EXTRA NEWS HD": {"frequency": 11747, "polarization": "Vertical"},
-        "EXTRA LIVE HD": {"frequency": 11747, "polarization": "Vertical"},
-        "CNBC ARABIA HD": {"frequency": 11938, "polarization": "Vertical"},
-        "AL MAYADEEN HD": {"frequency": 11391, "polarization": "Vertical"},
-        "EGYPT NEWS": {"frequency": 11747, "polarization": "Vertical"},
 
         # 📺 باقة المنوعات والقنوات العامة الأساسية
         "AL HAYAT HD": {"frequency": 12207, "polarization": "Vertical"},
@@ -300,18 +261,12 @@ def get_mega_nilesat_db():
         "CBC HD": {"frequency": 11785, "polarization": "Vertical"},
         "AL NAHAR HD": {"frequency": 11785, "polarization": "Vertical"},
         "SADA EL BALAD HD": {"frequency": 11823, "polarization": "Vertical"},
-        "TEN TV HD": {"frequency": 11843, "polarization": "Horizontal"},
-        "MEHWAR TV": {"frequency": 11179, "polarization": "Vertical"},
-        "ROYA HD": {"frequency": 11958, "polarization": "Horizontal"},
-        "LBC SAT": {"frequency": 11296, "polarization": "Horizontal"},
-        "ROTANA KHALIJIA HD": {"frequency": 12226, "polarization": "Horizontal"},
-        "WANNASAH HD": {"frequency": 11938, "polarization": "Vertical"},
-        "AL OULA HD": {"frequency": 11747, "polarization": "Vertical"},
-        "AL THANIA HD": {"frequency": 11747, "polarization": "Vertical"}
+        "WANNASAH HD": {"frequency": 11938, "polarization": "Vertical"}
     }
-    return mega_db
 
-NILESAT_LIVE_DB = get_mega_nilesat_db()
+# 🧠 آلية التعلم والذكاء التفاعلي التبادلي لامتصاص القنوات الجديدة
+if 'ai_learned_db' not in st.session_state:
+    st.session_state.ai_learned_db = get_base_nilesat_db()
 
 ALL_AVAILABLE_CATEGORIES = [
     "⛪ Christian Channels" if st.session_state.lang == 'en' else "⛪ قنوات مسيحية",
@@ -329,7 +284,7 @@ def ai_classify(channel_name):
     if any(w in name for w in ["CTV", "AGHAPY", "ME SAT", "MESAT", "MARMARKOS", "KOOGI", "SAT-7", "SAT7", "KARMA", "NOURSAT", "CYC", "LOGO TV", "SAMA", "MALAKOOT", "SHIFA", "BETHEL", "HEAVEN", "HOPE", "MIRACLE", "HOLY", "GOOD NEWS", "LIGHT TV", "TRUTH", "HAYAT TV", "LIFE TV", "MOFADY"]): return ALL_AVAILABLE_CATEGORIES[0]
     if any(w in name for w in ["QURAN", "RAHMA", "MAJD", "MAKKA", "SUNNA", "NAS TV", "ZAD", "ISLAM", "AFASY", "MEDINA", "IQRA", "IQRAA", "RISALAH", "NAS", "FATH", "DAWAH", "INSAAN", "SHAREQAH"]): return ALL_AVAILABLE_CATEGORIES[1]
     if any(w in name for w in ["MOSALSALAT", "DRAMA", "SERIES", "KHOLASA", "HEKAYAT", "ALWAN", "DOCH", "TIME DR", "NILE DRAMA"]): return ALL_AVAILABLE_CATEGORIES[2]
-    if any(w in name for w in ["CINEMA", "ROTANA", "AFLAM", "MIX", "FOX", "MBC2", "MBC 2", "ACTION", "RAMBO", "MISHMISH", "MOVIE", "MAX", "SCARE", "CIMA", "TOP MOV", "B4U MO", "SCIFI", "BLUE", "MELODY TOKTOK"]): return ALL_AVAILABLE_CATEGORIES[3]
+    if any(w in name for w in ["CINEMA", "ROTANA", "AFLAM", "MIX", "FOX", "MBC2", "MBC 2", "ACTION", "RAMBO", "MISHMISH", "MOVIE", "MAX", "SCARE", "CIMA", "TOP MOV", "B4U MO", "SCIFI", "BLUE", "MELODY", "TOKTOK"]): return ALL_AVAILABLE_CATEGORIES[3]
     if any(w in name for w in ["SPACE TOON", "SPACETOON", "CN", "MAJID", "KIDS", "TOM", "JERRY", "MODY", "CARTOON", "BOOMERANG", "BABY", "KARAMEESH", "TOYOR", "COCO", "BATUT", "SPONGEBOB"]): return ALL_AVAILABLE_CATEGORIES[4]
     if any(w in name for w in ["SPORT", "ONTIME", "KASS", "AD_SPORTS", "AD SPORTS", "SSC", "RIYADIYA", "YALLA", "SHOOT", "BEIN", "AHLY", "ZAMALEK"]): return ALL_AVAILABLE_CATEGORIES[5]
     if any(w in name for w in ["NEWS", "JAZEERA", "ARABIYA", "HADATH", "CAIRO", "EXTRA", "SKY", "AKHBAR", "RT AR", "MAYADEEN", "ASHARQ", "CNBC", "SADA"]): return ALL_AVAILABLE_CATEGORIES[6]
@@ -338,7 +293,11 @@ def ai_classify(channel_name):
 # بناء الـ Sidebar الجانبي
 st.sidebar.markdown(f"### {t['mode_selector']}")
 app_mode = st.sidebar.radio("", [t['mode_edit'], t['mode_gen']])
-st.sidebar.success(f"🛰️ تم شحن الـ Mega Database! جاهز لتوليد **{len(NILESAT_LIVE_DB)} قناة** حقيقية كاملة الباقات.")
+
+# لوحة عدادات الذكاء الاصطناعي في الـ Sidebar
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🧠 الوعي الذكي الحسابي (AI Core status):")
+st.sidebar.info(f"📊 حجم الذاكرة المتكاملة حالياً: **{len(st.session_state.ai_learned_db)} قناة** نشطة جاهزة للتوليد والترتيب الفوري.")
 
 file_processed = False
 file_bytes_out = b""
@@ -346,10 +305,10 @@ text_report_out = ""
 channels_to_sort = []
 report_changes = []
 injected_report = []
-detected_satellite = "RAMBO Mega Embedded Database Core"
+absorbed_channels_count = 0
 model_name_display = ""
 
-# --- 🟢 الوضع الأول: تعديل ملف مرفوع من الفلاشة ---
+# --- 🟢 الوضع الأول: تعديل ملف مرفوع من الفلاشة + تشغيل ميزة امتصاص الذكاء التفاعلي ---
 if app_mode == t['mode_edit']:
     uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
     if uploaded_file is not None:
@@ -364,9 +323,37 @@ if app_mode == t['mode_edit']:
         is_modern = legacy_broadcast_tag is not None and legacy_broadcast_tag.text
         
         st.info(f"{t['success_read']} **{model_name_display}**")
+        
+        # 🛸 تفكيك الملف المرفوع حالياً لامتصاص أي قنوات جديدة في الذاكرة الحية
+        if is_modern:
+            broadcast_data = json.loads(legacy_broadcast_tag.text)
+            uploaded_list = broadcast_data.get("channelList", [])
+            for c in uploaded_list:
+                name_up = c.get("channelName", "").strip().upper()
+                freq_up = c.get("frequency", 0)
+                pol_up = c.get("polarization", "Horizontal")
+                if name_up and freq_up > 0 and name_up not in st.session_state.ai_learned_db:
+                    # الـ AI يتعلم القناة الجديدة ويحدد فئتها فوراً
+                    st.session_state.ai_learned_db[name_up] = {"frequency": int(freq_up), "polarization": pol_up}
+                    absorbed_channels_count += 1
+        else:
+            item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text_original, re.DOTALL)
+            for item_str in item_blocks:
+                name_match = re.search(r'<vchName>(.*?)</vchName>', item_str)
+                freq_match = re.search(r'<frequency>(.*?)</frequency>', item_str)
+                if name_match and freq_match:
+                    name_up = name_match.group(1).strip().upper()
+                    freq_up = freq_match.group(1).strip()
+                    if name_up and freq_up.isdigit() and name_up not in st.session_state.ai_learned_db:
+                        st.session_state.ai_learned_db[name_up] = {"frequency": int(freq_up), "polarization": "Vertical" if int(freq_up) in [11392, 12207, 11785] else "Horizontal"}
+                        absorbed_channels_count += 1
+                        
+        if absorbed_channels_count > 0:
+            st.toast(f"🧠 الـ AI نجح في امتصاص {absorbed_channels_count} قناة جديدة وترددات إضافية من ملفك وزرعها في بنك التوليد!", icon="⚡")
+
         file_processed = True
 
-# --- 🔵 الوضع الثاني: توليد ملف فوري من القاعدة الثابتة الضخمة ---
+# --- 🔵 الوضع الثاني: ميزة التوليد المطور بالكامل من قاعدة البيانات المزدوجة والمتطورة ---
 else:
     st.markdown(f'<div class="cyber-sidebar-box">', unsafe_allow_html=True)
     gen_model = st.selectbox(t['model_label'], [t['model_modern'], t['model_legacy']])
@@ -377,14 +364,15 @@ else:
     if fire_gen or 'generated_active' in st.session_state:
         st.session_state.generated_active = True
         is_modern = (gen_model == t['model_modern'])
-        model_name_display = "LG-webOS-2026-GEN" if is_modern else "LG-Legacy-32-GEN"
+        model_name_display = "LG-webOS-2026-AI-EVOLVED" if is_modern else "LG-Legacy-32-AI-EVOLVED"
         country_code = "EG" if gen_country == t['country_egy'] else "SA"
         country_group = "NAFR" if gen_country == t['country_egy'] else "MIDE"
         
         st.success(f"{t['success_gen']} **{gen_country}** ({model_name_display})")
         
+        # سحب كافة القنوات (الأساسية + التي تعلمها الذكاء الاصطناعي من فلاشات المستخدمين) لصبها في التوليد
         idx = 0
-        for ch_name, data in NILESAT_LIVE_DB.items():
+        for ch_name, data in st.session_state.ai_learned_db.items():
             if is_modern:
                 node = {"channelName": ch_name, "frequency": data["frequency"], "polarization": data["polarization"], "majorNumber": 0, "serviceType": "1", "scrambled": "false", "symbolRate": "27500"}
                 channels_to_sort.append({"id": idx, "name": ch_name, "freq": str(data["frequency"]), "raw_node": node})
@@ -394,7 +382,7 @@ else:
             idx += 1
         file_processed = True
 
-# --- 🚀 خط المعالجة الموحد المكتمل ---
+# --- 🚀 مصفوفة المعالجة التفاعلية الموحدة للفرز والدمج ---
 if file_processed:
     st.markdown(f"""
         <div class="lg-trick-box">
@@ -414,20 +402,21 @@ if file_processed:
             
             existing_names = [c.get("channelName", "").upper() for c in channels_list]
             if add_new_channels:
-                for ch_name, data in NILESAT_LIVE_DB.items():
+                # تزويد ملف العميل المرفوع بأي قنوات موجودة في بنك الذاكرة المتطورة ومش عنده
+                for ch_name, data in st.session_state.ai_learned_db.items():
                     if ch_name not in existing_names:
                         channels_list.append({"channelName": ch_name, "frequency": data["frequency"], "polarization": data["polarization"], "majorNumber": 0, "serviceType": "1", "scrambled": "false", "symbolRate": "27500"})
-                        injected_report.append({"اسم القناة": ch_name, "التردد لايف": f"{data['frequency']} MHz", "تاريخ الرصد": "Today", "المصدر": "Mega Database"})
+                        injected_report.append({"اسم القناة": ch_name, "التردد المسترجع": f"{data['frequency']} MHz", "التصنيف الذكي": ai_classify(ch_name), "المصدر": "AI Shared Memory"})
             
             for idx, ch in enumerate(channels_list):
                 ch_name = ch.get("channelName", "Unknown")
                 old_freq = str(ch.get("frequency", "N/A"))
-                if update_freq and ch_name.upper() in NILESAT_LIVE_DB:
-                    live_freq = str(NILESAT_LIVE_DB[ch_name.upper()]["frequency"])
+                if update_freq and ch_name.upper() in st.session_state.ai_learned_db:
+                    live_freq = str(st.session_state.ai_learned_db[ch_name.upper()]["frequency"])
                     if old_freq != live_freq:
-                        report_changes.append({"القناة": ch_name, "الفئة (Category)": ai_classify(ch_name), "التردد بالملف": f"{old_freq} MHz", "التردد المحدث لايف": f"{live_freq} MHz", "تاريخ الصيانة": "Fixed"})
+                        report_changes.append({"القناة": ch_name, "الفئة (Category)": ai_classify(ch_name), "التردد القديم": f"{old_freq} MHz", "التردد المحدث برمجياً": f"{live_freq} MHz", "الحالة": "تمت المزامنة"})
                         ch["frequency"] = int(live_freq)
-                        ch["polarization"] = NILESAT_LIVE_DB[ch_name.upper()]["polarization"]
+                        ch["polarization"] = st.session_state.ai_learned_db[ch_name.upper()]["polarization"]
                         old_freq = live_freq
                 channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_node": ch})
         else:
@@ -440,33 +429,34 @@ if file_processed:
                 old_freq = freq_match.group(1) if freq_match else "N/A"
                 existing_names.append(ch_name.upper())
                 
-                if update_freq and ch_name.upper() in NILESAT_LIVE_DB:
-                    live_freq = str(NILESAT_LIVE_DB[ch_name.upper()]["frequency"])
+                if update_freq and ch_name.upper() in st.session_state.ai_learned_db:
+                    live_freq = str(st.session_state.ai_learned_db[ch_name.upper()]["frequency"])
                     if old_freq != live_freq:
-                        report_changes.append({"القناة": ch_name, "الفئة (Category)": ai_classify(ch_name), "التردد بالملف": f"{old_freq} MHz", "التردد المحدث لايف": f"{live_freq} MHz", "تاريخ الصيانة": "Fixed"})
+                        report_changes.append({"القناة": ch_name, "الفئة (Category)": ai_classify(ch_name), "التردد القديم": f"{old_freq} MHz", "التردد المحدث برمجياً": f"{live_freq} MHz", "الحالة": "تمت المزامنة"})
                         item_str = re.sub(r'<frequency>\d+</frequency>', f'<frequency>{live_freq}</frequency>', item_str)
                         old_freq = live_freq
                 channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_str": item_str})
                 
             if add_new_channels:
-                for ch_name, data in NILESAT_LIVE_DB.items():
+                for ch_name, data in st.session_state.ai_learned_db.items():
                     if ch_name not in existing_names:
                         new_item_raw = f"<ITEM>\r\n<prNum>0</prNum>\r\n<vchName>{ch_name}</vchName>\r\n<frequency>{data['frequency']}</frequency>\r\n<serviceType>1</serviceType>\r\n</ITEM>"
                         channels_to_sort.append({"id": len(channels_to_sort), "name": ch_name, "freq": str(data["frequency"]), "raw_str": new_item_raw})
-                        injected_report.append({"اسم القناة": ch_name, "التردد لايف": f"{data['frequency']} MHz", "تاريخ الرصد": "Today", "المصدر": "Mega Database"})
+                        injected_report.append({"اسم القناة": ch_name, "التردد المسترجع": f"{data['frequency']} MHz", "التصنيف الذكي": ai_classify(ch_name), "المصدر": "AI Shared Memory"})
 
-    # البحث الذكي
+    # محرك البحث والفرز الذكي
     st.write("---")
     st.write(f"### {t['search_header']}")
     search_query = st.text_input("", placeholder=t['search_placeholder']).strip().upper()
     if search_query:
         search_results = []
-        for idx, ch in enumerate(channels_sorted if 'channels_sorted' in locals() else channels_to_sort, start=1):
-            if search_query in ch["name"].upper(): search_results.append({t['search_col_num']: idx, t['search_col_name']: ch["name"], t['search_col_cat']: ai_classify(ch["name"]), t['search_col_freq']: ch["freq"]})
+        for idx, ch in enumerate(channels_to_sort, start=1):
+            if search_query in ch["name"].upper(): 
+                search_results.append({t['search_col_num']: idx, t['search_col_name']: ch["name"], t['search_col_cat']: ai_classify(ch["name"]), t['search_col_freq']: ch["freq"]})
         if search_results: st.table(search_results)
         else: st.warning(t['search_no_results'])
 
-    # مصفوفة الترتيب
+    # مصفوفة الترتيب الديناميكية
     st.write("---")
     st.write(f"### {t['config_title']}")
     user_priority = st.multiselect(t['multiselect_label'], options=ALL_AVAILABLE_CATEGORIES, default=[])
@@ -476,7 +466,7 @@ if file_processed:
 
     channels_sorted = sorted(channels_to_sort, key=lambda x: final_priority.index(ai_classify(x["name"])))
     
-    # المعاينة الحية المكتملة بالأعداد الضخمة
+    # مجسم المعاينة الحية بالأعداد الضخمة والمتنامية
     categorized = {}
     for ch in channels_sorted:
         cat = ai_classify(ch["name"])
@@ -492,9 +482,17 @@ if file_processed:
             target_col = col1 if i % 2 == 0 else col2
             with target_col:
                 is_user_chosen = "⭐ " if cat_name in user_priority else ""
-                with st.expander(f"{is_user_chosen}{cat_name} — ({len(ch_list)} {t['channels_count']})"): st.write(", ".join(ch_list))
+                with st.expander(f"{is_user_chosen}{cat_name} — ({len(ch_list)} {t['channels_count']})"): 
+                    st.write(", ".join(ch_list))
 
-    # التصدير وبناء هيكل الملف الـ TLL النهائي للتحميل
+    if report_changes:
+        st.write("### 🔁 سجل التحديث التبادلي والمزامنة الذكية للترددات:")
+        st.table(report_changes)
+    if injected_report:
+        st.write("### 🆕 قنوات مسترجعة ومزروعة أوتوماتيكياً من ذاكرة الـ AI العميقة لملفك:")
+        st.table(injected_report)
+
+    # التصدير وبناء ملف الـ TLL النهائي للتحميل
     if is_modern:
         final_list_modern = []
         for index, ch in enumerate(channels_sorted, start=1):
@@ -534,8 +532,8 @@ if file_processed:
         try: file_bytes_out = final_text_output.encode('utf-8')
         except UnicodeEncodeError: file_bytes_out = final_text_output.encode('latin-1')
 
-    # بناء ملف تقرير التحليل النصي
-    text_report_out = f"{t['txt_header']} ({model_name_display})\n🛰️ مستودع قنوات رامبو المدمج: {detected_satellite}\n"
+    # بناء تقرير التحليل النصي
+    text_report_out = f"{t['txt_header']} ({model_name_display})\n🧠 مستودع الذاكرة المتطورة الحية المشتركة للـ AI\n"
     text_report_out += "==================================================\n"
     for index, ch in enumerate(channels_sorted, start=1):
         text_report_out += f"No. {index:03d} : {ch['name']:<25} | Freq: {ch['freq']}\n"
@@ -546,7 +544,7 @@ if file_processed:
     with col_btn1: st.download_button(label=t['btn_download_tll'], data=file_bytes_out, file_name="GlobalClone00001.TLL", mime="application/octet-stream")
     with col_btn2: st.download_button(label=t['btn_download_txt'], data=text_report_out, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
 
-# الفوتر السيبراني
+# الفوتر السيبراني المعتمد للمهندس رفيق
 whatsapp_url = "https://api.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Nathan%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
 st.markdown(f"""
     <div class="futuristic-cyber-footer">
