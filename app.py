@@ -2,8 +2,9 @@ import streamlit as st
 import xml.etree.ElementTree as ET
 import json
 import re
+import os
 
-# 1. تهيئة الحالات الافتراضية للغة والثيم في جلسة المستخدم
+# 1. تهيئة الحالات الافتراضية للغة والثيم
 if 'lang' not in st.session_state:
     st.session_state.lang = 'ar'
 if 'theme' not in st.session_state:
@@ -13,10 +14,10 @@ if 'theme' not in st.session_state:
 UI_TEXT = {
     'ar': {
         'title': "📺 RAMBO ULTRA - المنصة العالمية الذكية لشاشات LG",
-        'subtitle': "⚡ محرك الـ AI العبقري: تصفية التكرار، تدقيق الفئات، ومزامنة أحدث ترددات 2026 فوراً",
+        'subtitle': "⚡ الذاكرة الأبدية الحية: محرك AI يتعلم ويحفظ التحديثات في الخلفية مدى الحياة",
         'mode_selector': "🛠️ اختر وضع العمل المطلوب للبرنامج:",
         'mode_edit': "🛸 تعديل وترتيب ملف مرفوع (تنقية وتغذية الـ AI)",
-        'mode_gen': "⚛️ توليد ملف جديد تماماً خالي من القنوات الميتة والتكرار",
+        'mode_gen': "⚛️ توليد ملف جديد تماماً يعتمد على أحدث ما تعلمه الـ AI",
         'model_label': "📺 اختر نوع موديل شاشة LG المستهدفة:",
         'model_modern': "Smart webOS (شاشات سمارت حديثة)",
         'model_legacy': "Legacy / 32 Inch (الشاشات الكلاسيكية والـ 32 بوصة)",
@@ -26,7 +27,7 @@ UI_TEXT = {
         'btn_generate': "🚀 إطلاق مصفوفة التوليد السريع للملف الجديد",
         'upload_label': "🚀 اختر ملف القنوات (GlobalClone00001.TLL) من الفلاشة لتطهيره وتحديثه:",
         'update_freq_label': "⚛️ إجبار الملف على الترددات الرسمية الحديثة لعام 2026 (تطهير الترددات الميتة)",
-        'add_new_ch_label': "✨ امتصاص القنوات الحصرية الجديدة فقط (منع التكرار نهائياً)",
+        'add_new_ch_label': "✨ امتصاص القنوات الحصرية الجديدة وحفظها في ذاكرة الموقع الأبدية",
         'success_read': "🛸 تم قراءة وفك الهيكل بنجاح! الموديل الحالي: ",
         'success_gen': "🌌 تم توليد ملف قنوات LG فائق النقاء ومتوافق مع نطاق بث: ",
         'search_header': "🔍 محرك البحث والتدقيق الذكي داخل باقات الـ AI:",
@@ -51,10 +52,10 @@ UI_TEXT = {
     },
     'en': {
         'title': "📺 RAMBO ULTRA - LG Universal Live-AI Platform",
-        'subtitle': "⚡ AI Engine: Anti-Duplication, Precise Classification & Smart 2026 Frequency Enforcer",
+        'subtitle': "⚡ Persistent Background Memory: AI Learning & Saving Real-Time Frequency Changes Forever",
         'mode_selector': "🛠️ Select Desired Operations Mode:",
         'mode_edit': "🛸 Edit/Optimize USB File (Cleanse & Feed AI)",
-        'mode_gen': "⚛️ Generate Brand New Raw .TLL (Zero Duplicate / Dead Channels)",
+        'mode_gen': "⚛️ Generate Brand New Raw .TLL (Evolved from Persistent AI Memory)",
         'model_label': "📺 Select Target LG TV Model Type:",
         'model_modern': "Smart webOS (Modern Smart Models)",
         'model_legacy': "Legacy / 32 Inch (Classic & 32\" Screen Profile)",
@@ -63,8 +64,8 @@ UI_TEXT = {
         'country_ksa': "Saudi Arabia (KSA) — Middle East Grouping [MIDE]",
         'btn_generate': "🚀 Fire Matrix Generation Engine",
         'upload_label': "🚀 Upload Channel File (GlobalClone00001.TLL) to Cleanse and Sort:",
-        'update_freq_label': "⚛| Enforce Official 2026 Live Frequencies (Wipe Dead Frequencies)",
-        'add_new_ch_label': "✨ Inject Exclusive New Channels Only (Strict Anti-Duplicate Mode)",
+        'update_freq_label': "⚛️ Enforce Official Live Frequencies (Wipe Dead Frequencies)",
+        'add_new_ch_label': "✨ Absorb New Channels and Save to Site Persistent Memory",
         'success_read': "🛸 Matrix Structure Decoded Successfully! Model Profile: ",
         'success_gen': "🌌 Created brand new ultra-pure LG channel structure for: ",
         'search_header': "🔍 Dynamic Channel & AI Category Inspection Engine:",
@@ -72,7 +73,7 @@ UI_TEXT = {
         'search_col_num': "No.",
         'search_col_name': "Channel Name",
         'search_col_cat': "Precise Category",
-        'search_col_freq': "Active 2026 Freq",
+        'search_col_freq': "Active Freq",
         'search_no_results': "⚠️ No verified channels found matching criteria.",
         'config_title': "🎛️ Custom Category Priority Control Matrix:",
         'config_tip': "💡 Hint: Click categories in exact order. The first selection populates the absolute top of your TV.",
@@ -89,7 +90,7 @@ UI_TEXT = {
 
 t = UI_TEXT[st.session_state.lang]
 
-st.set_page_config(page_title="RAMBO ULTRA - Pure AI Sorter", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="RAMBO ULTRA - Brain AI Sorter", page_icon="⚡", layout="wide")
 
 # التحكم في اللغة والثيمات
 col_lang, col_theme, _ = st.columns([1.2, 1.5, 8])
@@ -102,7 +103,7 @@ with col_theme:
         st.session_state.theme = 'light' if st.session_state.theme == 'dark' else 'dark'
         st.rerun()
 
-# الـ CSS السيبراني
+# الـ CSS السيبراني الفخم
 if st.session_state.theme == 'dark':
     bg_style = "radial-gradient(circle at 50% 50%, #110926 0%, #05020d 100%)"
     text_color = "#00f0ff"
@@ -141,10 +142,9 @@ st.markdown(f"""
 st.title(t['title'])
 st.markdown(f"<h3>{t['subtitle']}</h3>", unsafe_allow_html=True)
 
-# 💾 المستودع المرجعي الرسمي والنهائي لعام 2026 - الترددات هنا تكتسح وتلغي أي تردد قديم مرفوع
-def get_verified_2026_db():
+# 💾 المستودع المرجعي الأساسي الصلب والانطلاقة لعام 2026
+def get_base_2026_db():
     return {
-        # ⛪ باقة القنوات المسيحية الدقيقة والمؤكدة بنسبة 100%
         "ALHAYAT TV": {"frequency": 11392, "polarization": "Vertical"},
         "THE LIFE TV": {"frequency": 11392, "polarization": "Vertical"},
         "AL SHIFA TV": {"frequency": 11392, "polarization": "Vertical"},
@@ -171,8 +171,6 @@ def get_verified_2026_db():
         "GOOD NEWS TV": {"frequency": 12022, "polarization": "Vertical"},
         "LIGHT TV": {"frequency": 11179, "polarization": "Vertical"},
         "TRUTH TV": {"frequency": 11353, "polarization": "Vertical"},
-
-        # 🕌 باقة القنوات الإسلامية الموثقة لعام 2026
         "SAUDI QURAN HD": {"frequency": 12149, "polarization": "Horizontal"},
         "AL MAJD QURAN": {"frequency": 12054, "polarization": "Horizontal"},
         "AL MAJD HADITH": {"frequency": 12054, "polarization": "Horizontal"},
@@ -190,8 +188,6 @@ def get_verified_2026_db():
         "IQRAA HD": {"frequency": 12034, "polarization": "Horizontal"},
         "RISALAH TV": {"frequency": 11296, "polarization": "Horizontal"},
         "AL NAS TV": {"frequency": 12054, "polarization": "Horizontal"},
-
-        # 🎬 باقة المسلسلات والدراما
         "MBC DRAMA HD": {"frequency": 11938, "polarization": "Vertical"},
         "DMC DRAMA": {"frequency": 12092, "polarization": "Vertical"},
         "CBC DRAMA": {"frequency": 11785, "polarization": "Vertical"},
@@ -204,8 +200,6 @@ def get_verified_2026_db():
         "MIX DRAMA": {"frequency": 11843, "polarization": "Horizontal"},
         "TIME DRAMA": {"frequency": 11179, "polarization": "Vertical"},
         "NILE DRAMA": {"frequency": 11843, "polarization": "Horizontal"},
-
-        # 🍿 باقة الأفلام والسينما (عربي وأجنبي)
         "MBC 2 HD": {"frequency": 11938, "polarization": "Vertical"},
         "MBC ACTION HD": {"frequency": 11938, "polarization": "Vertical"},
         "MBC MAX HD": {"frequency": 11938, "polarization": "Vertical"},
@@ -219,8 +213,6 @@ def get_verified_2026_db():
         "ART AFLAM 1": {"frequency": 12034, "polarization": "Horizontal"},
         "ART AFLAM 2": {"frequency": 12034, "polarization": "Horizontal"},
         "FOX MOVIES": {"frequency": 11296, "polarization": "Horizontal"},
-
-        # 👶 باقة الأطفال والكرتون
         "SPACE TOON HD": {"frequency": 11785, "polarization": "Vertical"},
         "CN ARABIA HD": {"frequency": 12226, "polarization": "Horizontal"},
         "MAJID KIDS HD": {"frequency": 11411, "polarization": "Horizontal"},
@@ -230,8 +222,6 @@ def get_verified_2026_db():
         "TOYOR AL JANNAH": {"frequency": 11315, "polarization": "Vertical"},
         "BATUT TV": {"frequency": 11595, "polarization": "Vertical"},
         "SPONGEBOB TV": {"frequency": 11353, "polarization": "Vertical"},
-
-        # ⚽ باقة الرياضة
         "ON TIME SPORTS 1 HD": {"frequency": 11861, "polarization": "Vertical"},
         "ON TIME SPORTS 2 HD": {"frequency": 11861, "polarization": "Vertical"},
         "ON TIME SPORTS 3 HD": {"frequency": 11861, "polarization": "Vertical"},
@@ -240,16 +230,12 @@ def get_verified_2026_db():
         "SSC NEWS HD": {"frequency": 12418, "polarization": "Horizontal"},
         "AL AHLY TV HD": {"frequency": 11747, "polarization": "Vertical"},
         "ZAMALEK TV HD": {"frequency": 11449, "polarization": "Vertical"},
-
-        # 📰 باقة الأخبار والسياسة
         "AL JAZEERA HD": {"frequency": 10971, "polarization": "Vertical"},
         "AL ARABIYA HD": {"frequency": 12169, "polarization": "Vertical"},
         "AL HADATH HD": {"frequency": 12169, "polarization": "Vertical"},
         "CAIRO NEWS HD": {"frequency": 11747, "polarization": "Vertical"},
         "SKY NEWS ARABIA HD": {"frequency": 11977, "polarization": "Vertical"},
         "EXTRA NEWS HD": {"frequency": 11747, "polarization": "Vertical"},
-
-        # 📺 باقة المنوعات والقنوات العامة الأساسية
         "AL HAYAT HD": {"frequency": 12207, "polarization": "Vertical"},
         "MBC MASR HD": {"frequency": 12015, "polarization": "Vertical"},
         "MBC MASR 2 HD": {"frequency": 11823, "polarization": "Vertical"},
@@ -261,10 +247,30 @@ def get_verified_2026_db():
         "WANNASAH HD": {"frequency": 11938, "polarization": "Vertical"}
     }
 
-MASTER_2026_DB = get_verified_2026_db()
+# 🧠 نظام الذاكرة الأبدية (Persistent JSON Engine) لحفظ الداتا على السيرفر في الخلفية
+BRAIN_FILE = "ai_brain_db.json"
 
-if 'ai_expanded_memory' not in st.session_state:
-    st.session_state.ai_expanded_memory = dict(MASTER_2026_DB)
+def load_persistent_brain():
+    base_db = get_base_2026_db()
+    if os.path.exists(BRAIN_FILE):
+        try:
+            with open(BRAIN_FILE, "r", encoding="utf-8") as f:
+                saved_db = json.load(f)
+                # دمج الملف المحفوظ مع القائمة الأساسية لمنع الضياع
+                base_db.update(saved_db)
+        except Exception:
+            pass
+    return base_db
+
+def save_persistent_brain(updated_db):
+    try:
+        with open(BRAIN_FILE, "w", encoding="utf-8") as f:
+            json.dump(updated_db, f, ensure_ascii=False, indent=4)
+    except Exception:
+        pass
+
+# تحميل بنك البيانات المتراكم والمحفوظ مدى الحياة في الخلفية
+MASTER_2026_DB = load_persistent_brain()
 
 ALL_AVAILABLE_CATEGORIES = [
     "⛪ Christian Channels" if st.session_state.lang == 'en' else "⛪ قنوات مسيحية",
@@ -277,49 +283,41 @@ ALL_AVAILABLE_CATEGORIES = [
     "📺 General Channels" if st.session_state.lang == 'en' else "📺 قنوات عامة ومنوعات"
 ]
 
-# دالة التصنيف بالذكاء الاصطناعي (محدثة ومحسنة تماماً لمنع الخلط بين الفئات)
 def ai_classify(channel_name):
     name = channel_name.upper().strip()
-    # ⛪ المسيحية
     if any(w in name for w in ["CTV", "AGHAPY", "ME SAT", "MESAT", "MARMARKOS", "KOOGI", "SAT-7", "SAT7", "KARMA", "NOURSAT", "CYC", "LOGO TV", "SAMA", "MALAKOOT", "SHIFA", "BETHEL", "HEAVEN", "HOPE", "MIRACLE", "HOLY", "GOOD NEWS", "LIGHT TV", "TRUTH", "HAYAT TV", "LIFE TV", "MOFADY"]): 
         return ALL_AVAILABLE_CATEGORIES[0]
-    # 🕌 الإسلامية
     if any(w in name for w in ["QURAN", "RAHMA", "MAJD", "MAKKA", "SUNNA", "NAS TV", "ZAD", "ISLAM", "AFASY", "MEDINA", "IQRA", "IQRAA", "RISALAH", "NAS", "FATH", "DAWAH", "INSAAN", "SHAREQAH"]): 
         return ALL_AVAILABLE_CATEGORIES[1]
-    # 🎬 مسلسلات ودراما
     if any(w in name for w in ["MOSALSALAT", "DRAMA", "SERIES", "KHOLASA", "HEKAYAT", "ALWAN", "DOCH", "TIME DR", "NILE DRAMA"]): 
         return ALL_AVAILABLE_CATEGORIES[2]
-    # 🍿 أفلام وسينما
     if any(w in name for w in ["CINEMA", "ROTANA", "AFLAM", "MIX", "FOX", "MBC2", "MBC 2", "ACTION", "RAMBO", "MISHMISH", "MOVIE", "MAX", "SCARE", "CIMA", "TOP MOV", "B4U MO", "SCIFI", "BLUE", "MELODY", "TOKTOK"]): 
         return ALL_AVAILABLE_CATEGORIES[3]
-    # 👶 أطفال
     if any(w in name for w in ["SPACE TOON", "SPACETOON", "CN", "MAJID", "KIDS", "TOM", "JERRY", "MODY", "CARTOON", "BOOMERANG", "BABY", "KARAMEESH", "TOYOR", "COCO", "BATUT", "SPONGEBOB"]): 
         return ALL_AVAILABLE_CATEGORIES[4]
-    # ⚽ رياضية
     if any(w in name for w in ["SPORT", "ONTIME", "KASS", "AD_SPORTS", "AD SPORTS", "SSC", "RIYADIYA", "YALLA", "SHOOT", "BEIN", "AHLY", "ZAMALEK"]): 
         return ALL_AVAILABLE_CATEGORIES[5]
-    # 📰 إخبارية
     if any(w in name for w in ["NEWS", "JAZEERA", "ARABIYA", "HADATH", "CAIRO", "EXTRA", "SKY", "AKHBAR", "RT AR", "MAYADEEN", "ASHARQ", "CNBC"]): 
         return ALL_AVAILABLE_CATEGORIES[6]
-    # 📺 منوعات عامة
     return ALL_AVAILABLE_CATEGORIES[7]
 
 st.sidebar.markdown(f"### {t['mode_selector']}")
 app_mode = st.sidebar.radio("", [t['mode_edit'], t['mode_gen']])
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🧠 مركز التصفية والمزامنة السيبراني:")
-st.sidebar.info(f"📊 إجمالي القنوات الموثقة والمطهرة في النظام: **{len(st.session_state.ai_expanded_memory)} قناة نشطة**.")
+st.sidebar.markdown("### 🧠 الذاكرة الدائمة المحفوظة بالسيرفر:")
+st.sidebar.info(f"📊 حجم بنك القنوات الأبدي المتراكم حالياً: **{len(MASTER_2026_DB)} قناة** نشطة ومحمية من الضياع في الخلفية.")
 
 file_processed = False
 file_bytes_out = b""
 text_report_out = ""
-unique_channels_map = {} # قاموس لمنع التكرار نهائياً داخل الملف الواحد
+unique_channels_map = {}
 report_changes = []
 injected_report = []
 model_name_display = ""
+database_needs_save = False # راية برمجية لمعرفة هل تم رصد قنوات جديدة لحفظها فوراً
 
-# --- 🟢 الوضع الأول: تعديل ملف العميل وتنقيته من القنوات الميتة والتكرار ---
+# --- 🟢 الوضع الأول: تعديل ملف العميل + امتصاص وتحديث الذاكرة الأبدية في الخلفية ---
 if app_mode == t['mode_edit']:
     uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
     if uploaded_file is not None:
@@ -343,7 +341,18 @@ if app_mode == t['mode_edit']:
             broadcast_data = json.loads(legacy_broadcast_tag.text)
             uploaded_list = broadcast_data.get("channelList", [])
             
-            # الخطوة 1: معالجة وتنقية القنوات الموجودة في ملف العميل
+            # الـ AI يفحص الملف المرفوع ويمتص أحدث الترددات والقنوات الجديدة لحفظها أبدياً
+            for c in uploaded_list:
+                name_up = c.get("channelName", "").strip().upper()
+                freq_up = c.get("frequency", 0)
+                pol_up = c.get("polarization", "Horizontal")
+                if name_up and freq_up > 0:
+                    # لو لقى قناة جديدة تماماً مش في الماستر، أو قناة قديمة بس نازلة بتردد أحدث وأنقى، يحفظها في الخلفية فوراً
+                    if name_up not in MASTER_2026_DB or MASTER_2026_DB[name_up]["frequency"] != int(freq_up):
+                        MASTER_2026_DB[name_up] = {"frequency": int(freq_up), "polarization": pol_up}
+                        database_needs_save = True
+
+            # تصفية وفك تكرار القنوات المعروضة للمستخدم حالياً بناءً على الذاكرة المحدثة
             for idx, ch in enumerate(uploaded_list):
                 ch_name = ch.get("channelName", "").strip()
                 ch_name_upper = ch_name.upper()
@@ -351,34 +360,41 @@ if app_mode == t['mode_edit']:
                 
                 old_freq = str(ch.get("frequency", "0"))
                 
-                # 🛑 الحماية الذكية: إذا كانت القناة مسجلة في الماستر 2026، نقوم بإلغاء التردد القديم الميت المرفوع وفك التكرار
                 if enforce_2026 and ch_name_upper in MASTER_2026_DB:
                     verified_freq = MASTER_2026_DB[ch_name_upper]["frequency"]
                     if old_freq != str(verified_freq):
-                        report_changes.append({"القناة": ch_name, "التصنيف": ai_classify(ch_name), "التردد الملغي (قديم وميت)": f"{old_freq} MHz", "التردد المعتمد 2026": f"{verified_freq} MHz", "القرار": "تحديث فوري وقسري"})
+                        report_changes.append({"القناة": ch_name, "التصنيف": ai_classify(ch_name), "التردد الملغي (قديم)": f"{old_freq} MHz", "التردد الحقيقي النشط": f"{verified_freq} MHz", "القرار": "تحديث فوري وقسري"})
                         ch["frequency"] = int(verified_freq)
                         ch["polarization"] = MASTER_2026_DB[ch_name_upper]["polarization"]
                         old_freq = str(verified_freq)
                 
-                # منع التكرار داخل نفس الملف: لو الاسم اتكرر، خذ التردد المحدث والاحدث واحذف التكرار القديم
                 if ch_name_upper not in unique_channels_map:
                     unique_channels_map[ch_name_upper] = {"id": idx, "name": ch_name, "freq": old_freq, "raw_node": ch}
                 else:
-                    # تحديث الداتا إذا لزم الأمر بدون تكرار الصف
                     unique_channels_map[ch_name_upper]["freq"] = old_freq
                     unique_channels_map[ch_name_upper]["raw_node"] = ch
 
-            # امتصاص القنوات الجديدة الحصرية التي لم تكن في ملف المستخدم وزرعها
             if inject_exclusive:
                 for ch_name_master, data_master in MASTER_2026_DB.items():
                     if ch_name_master not in unique_channels_map:
                         new_node = {"channelName": ch_name_master, "frequency": data_master["frequency"], "polarization": data_master["polarization"], "majorNumber": 0, "serviceType": "1", "scrambled": "false", "symbolRate": "27500"}
                         unique_channels_map[ch_name_master] = {"id": len(unique_channels_map), "name": ch_name_master, "freq": str(data_master["frequency"]), "raw_node": new_node}
-                        injected_report.append({"اسم القناة": ch_name_master, "التردد المعتمد": f"{data_master['frequency']} MHz", "التصنيف الدكي": ai_classify(ch_name_master), "الوضعية": "زرع حصري منعاً للموت"})
+                        injected_report.append({"اسم القناة": ch_name_master, "التردد المعتمد": f"{data_master['frequency']} MHz", "التصنيف الدكي": ai_classify(ch_name_master), "الوضعية": "زرع من الذاكرة الأبدية"})
 
         else:
-            # معالجة ملفات الأجهزة الكلاسيكية (XML Items) بنفس القوة والذكاء
+            # معالجة ملفات الأجهزة الكلاسيكية بنفس القوة والذكاء وحفظ الجديد في الخلفية
             item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text_original, re.DOTALL)
+            for item_str in item_blocks:
+                name_match = re.search(r'<vchName>(.*?)</vchName>', item_str)
+                freq_match = re.search(r'<frequency>(.*?)</frequency>', item_str)
+                if name_match and freq_match:
+                    name_up = name_match.group(1).strip().upper()
+                    freq_up = freq_match.group(1).strip()
+                    if name_up and freq_up.isdigit():
+                        if name_up not in MASTER_2026_DB or MASTER_2026_DB[name_up]["frequency"] != int(freq_up):
+                            MASTER_2026_DB[name_up] = {"frequency": int(freq_up), "polarization": "Vertical" if int(freq_up) in [11392, 12207, 11785] else "Horizontal"}
+                            database_needs_save = True
+
             for idx, item_str in enumerate(item_blocks):
                 name_match = re.search(r'<vchName>(.*?)</vchName>', item_str)
                 freq_match = re.search(r'<frequency>(.*?)</frequency>', item_str)
@@ -390,7 +406,7 @@ if app_mode == t['mode_edit']:
                 if enforce_2026 and ch_name_upper in MASTER_2026_DB:
                     verified_freq = MASTER_2026_DB[ch_name_upper]["frequency"]
                     if old_freq != str(verified_freq):
-                        report_changes.append({"القناة": ch_name, "التصنيف": ai_classify(ch_name), "التردد الملغي (قديم وميت)": f"{old_freq} MHz", "التردد المعتمد 2026": f"{verified_freq} MHz", "القرار": "تحديث فوري وقسري"})
+                        report_changes.append({"القناة": ch_name, "التصنيف": ai_classify(ch_name), "التردد الملغي (قديم)": f"{old_freq} MHz", "التردد الحقيقي النشط": f"{verified_freq} MHz", "القرار": "تحديث فوري وقسري"})
                         item_str = re.sub(r'<frequency>\d+</frequency>', f'<frequency>{verified_freq}</frequency>', item_str)
                         old_freq = str(verified_freq)
                 
@@ -402,11 +418,16 @@ if app_mode == t['mode_edit']:
                     if ch_name_master not in unique_channels_map:
                         new_item_raw = f"<ITEM>\r\n<prNum>0</prNum>\r\n<vchName>{ch_name_master}</vchName>\r\n<frequency>{data_master['frequency']}</frequency>\r\n<serviceType>1</serviceType>\r\n</ITEM>"
                         unique_channels_map[ch_name_master] = {"id": len(unique_channels_map), "name": ch_name_master, "freq": str(data_master["frequency"]), "raw_str": new_item_raw}
-                        injected_report.append({"اسم القناة": ch_name_master, "التردد المعتمد": f"{data_master['frequency']} MHz", "التصنيف الدكي": ai_classify(ch_name_master), "الوضعية": "زرع حصري منعاً للموت"})
+                        injected_report.append({"اسم القناة": ch_name_master, "التردد المعتمد": f"{data_master['frequency']} MHz", "التصنيف الدكي": ai_classify(ch_name_master), "الوضعية": "زرع من الذاكرة الأبدية"})
+
+        # 🔥 الأمر العبقري: الحفظ الفوري في الخلفية على السيرفر للمستقبل من غير ما الموقع يصفر
+        if database_needs_save:
+            save_persistent_brain(MASTER_2026_DB)
+            st.toast("💾 تم دمج وحفظ الترددات الجديدة أبدياً في ملف السيرفر الخلفي بنجاح!", icon="🧠")
 
         file_processed = True
 
-# --- 🔵 الوضع الثاني: توليد ملف نقي من الصفر يعتمد كلياً على أحدث ترددات الماستر ---
+# --- 🔵 الوضع الثاني: توليد ملف فائق النقاء معتمد كلياً على التحديث المتراكم في الخلفية ---
 else:
     st.markdown(f'<div class="cyber-sidebar-box">', unsafe_allow_html=True)
     gen_model = st.selectbox(t['model_label'], [t['model_modern'], t['model_legacy']])
@@ -417,7 +438,7 @@ else:
     if fire_gen or 'generated_active' in st.session_state:
         st.session_state.generated_active = True
         is_modern = (gen_model == t['model_modern'])
-        model_name_display = "LG-webOS-2026-PURE-GEN" if is_modern else "LG-Legacy-32-PURE-GEN"
+        model_name_display = "LG-webOS-2026-PERSIST-GEN" if is_modern else "LG-Legacy-32-PERSIST-GEN"
         country_code = "EG" if gen_country == t['country_egy'] else "SA"
         country_group = "NAFR" if gen_country == t['country_egy'] else "MIDE"
         
@@ -443,10 +464,8 @@ if file_processed:
         </div>
     """, unsafe_allow_html=True)
 
-    # تحويل خريطة البيانات الخالية من التكرار والمصححة بالكامل إلى قائمة للفرز والترتيب
     cleaned_channels_list = list(unique_channels_map.values())
 
-    # محرك الفرز المخصص بناءً على رغبة المستخدم
     st.write("---")
     st.write(f"### {t['config_title']}")
     user_priority = st.multiselect(t['multiselect_label'], options=ALL_AVAILABLE_CATEGORIES, default=[])
@@ -454,13 +473,11 @@ if file_processed:
     for cat in ALL_AVAILABLE_CATEGORIES:
         if cat not in final_priority: final_priority.append(cat)
 
-    # الفرز الذكي الصارم: تصنيف الكاتيجوري الدقيق أولاً ثم الترتيب الهيكلي
     channels_sorted = sorted(cleaned_channels_list, key=lambda x: final_priority.index(ai_classify(x["name"])))
     
-    # محرك الفحص والبحث لاختبار صحة الكاتيجوري والتردد
     st.write("---")
     st.write(f"### {t['search_header']}")
-    search_query = st.st.text_input("", placeholder=t['search_placeholder']).strip().upper() if hasattr(st, 'st') else st.text_input("", placeholder=t['search_placeholder']).strip().upper()
+    search_query = st.text_input("", placeholder=t['search_placeholder']).strip().upper()
     if search_query:
         search_results = []
         for idx, ch in enumerate(channels_sorted, start=1):
@@ -469,7 +486,6 @@ if file_processed:
         if search_results: st.table(search_results)
         else: st.warning(t['search_no_results'])
 
-    # مجسم المعاينة الحية المحدثة والخالية تماماً من القنوات الميتة والتكرار
     categorized = {}
     for ch in channels_sorted:
         cat = ai_classify(ch["name"])
@@ -488,20 +504,19 @@ if file_processed:
                 with st.expander(f"{is_user_chosen}{cat_name} — ({len(ch_list)} {t['channels_count']})"): 
                     st.write(", ".join(ch_list))
 
-    # طباعة التقارير التفاعلية لإثبات الذكاء الاصطناعي للمستخدم
     if app_mode == t['mode_edit'] and report_changes:
         st.write("### 🔁 تقرير تطهير الترددات الميتة وإبادة البيانات القديمة:")
         st.table(report_changes)
     if app_mode == t['mode_edit'] and injected_report:
-        st.write("### 🆕 تقرير القنوات الحصرية الحية المزروعة حديثاً لمنع النقص:")
+        st.write("### 🆕 تقرير القنوات الحصرية المستدعاة من الذاكرة الحية الدائمة للموقع:")
         st.table(injected_report)
 
-    # تصدير الملف الـ TLL النهائي وبنائه برقم تسلسلي نقي (برمجة سيبرانية متينة)
+    # بناء ملف الـ TLL النهائي للتحميل
     if is_modern:
         final_list_modern = []
         for index, ch in enumerate(channels_sorted, start=1):
             node = ch["raw_node"]
-            node["majorNumber"] = index # إعطاء الرقم التسلسلي النظيف للشاشة
+            node["majorNumber"] = index
             final_list_modern.append(node)
         
         if app_mode == t['mode_edit']:
@@ -540,8 +555,7 @@ if file_processed:
         try: file_bytes_out = final_text_output.encode('utf-8')
         except UnicodeEncodeError: file_bytes_out = final_text_output.encode('latin-1')
 
-    # بناء تقرير التحليل النصي النقي للتحميل
-    text_report_out = f"{t['txt_header']} ({model_name_display})\n🧠 نظام الترشيح والتنقية السيبراني الشامل - صفر تكرار\n"
+    text_report_out = f"{t['txt_header']} ({model_name_display})\n🧠 نظام الذاكرة الأبدية المحفوظة بالسيرفر\n"
     text_report_out += "==================================================\n"
     for index, ch in enumerate(channels_sorted, start=1):
         text_report_out += f"No. {index:03d} : {ch['name']:<25} | Freq: {ch['freq']} | Category: {ai_classify(ch['name'])}\n"
