@@ -3,6 +3,8 @@ import xml.etree.ElementTree as ET
 import json
 import re
 import os
+import csv
+from io import StringIO
 from datetime import datetime
 
 if 'lang' not in st.session_state:
@@ -34,6 +36,7 @@ UI_TEXT = {
         'multiselect_label': "ترتيب خطة العرض حسب الفئات:",
         'ready_msg': "🌌 تم دمج المصفوفة وتطهير البيانات! الملف جاهز:",
         'btn_download_tll': "📥 تحميل ملف الشاشة المحدث (GlobalClone00001.TLL)",
+        'btn_download_sort': "📥 تحميل ترتيب القنوات (CSV)",
         'channels_count': "قناة نقيّة",
         'lg_trick_title': "💡 خطوة هامة بعد تركيب الملف على شاشة LG:",
         'lg_trick_text': "إعدادات التلفزيون ← القنوات ← مدير القنوات ← التعديل على كل القنوات ← حدد الكل ← استعادة (Restore) لإجبار الشاشة على تفعيل الترتيب الفعلي.",
@@ -61,6 +64,7 @@ UI_TEXT = {
         'multiselect_label': "Build your interactive category sequence:",
         'ready_msg': "🌌 Matrix Cleansing Successful! Asset ready:",
         'btn_download_tll': "📥 Download Verified TV Config (GlobalClone00001.TLL)",
+        'btn_download_sort': "📥 Download Sort File (CSV)",
         'channels_count': "Pure Channels",
         'lg_trick_title': "💡 LG Post-Installation Step:",
         'lg_trick_text': "Settings → Channels → Channel Manager → Edit All Channels → Select All → Restore to enforce correct sort order.",
@@ -131,8 +135,6 @@ h1 {{
     margin-bottom: 4px !important;
 }}
 h2, h3, p, label, .stMarkdown, .stText {{ color: {TEXT} !important; }}
-
-/* scan line under title */
 .scan-line {{
     height: 2px;
     background: linear-gradient(90deg, transparent, {CYAN}, {PINK}, transparent);
@@ -142,8 +144,6 @@ h2, h3, p, label, .stMarkdown, .stText {{ color: {TEXT} !important; }}
     animation: scan 3s ease-in-out infinite alternate;
 }}
 @keyframes scan {{ from{{opacity:.3}} to{{opacity:1}} }}
-
-/* metric cards */
 .cyber-metric-card {{
     background: {CARD_BG};
     border: 1px solid {BORDER};
@@ -160,8 +160,6 @@ h2, h3, p, label, .stMarkdown, .stText {{ color: {TEXT} !important; }}
     margin: 6px 0 2px;
 }}
 .metric-label {{ font-size: 11px; color: {MUTED}; }}
-
-/* upload / expander / checkbox boxes */
 div[data-testid="stFileUploader"],
 div[data-testid="stExpander"],
 .stCheckbox {{
@@ -171,8 +169,6 @@ div[data-testid="stExpander"],
     padding: 14px !important;
     margin-bottom: 14px !important;
 }}
-
-/* inputs */
 .stTextInput > div > div > input {{
     background: {BG2} !important;
     color: {TEXT} !important;
@@ -180,16 +176,12 @@ div[data-testid="stExpander"],
     border-radius: 10px !important;
     font-family: {FONT_MAIN};
 }}
-
-/* selectbox */
 .stSelectbox > div > div {{
     background: {BG2} !important;
     border: 1px solid {BORDER} !important;
     border-radius: 10px !important;
     color: {TEXT} !important;
 }}
-
-/* buttons */
 .stButton > button {{
     background: linear-gradient(135deg, {PINK} 0%, #990033 100%) !important;
     color: #ffffff !important;
@@ -202,8 +194,6 @@ div[data-testid="stExpander"],
     transition: opacity .2s, transform .15s;
 }}
 .stButton > button:hover {{ opacity: .88; transform: translateY(-2px); }}
-
-/* download button */
 .stDownloadButton > button {{
     background: linear-gradient(135deg, {CYAN} 0%, #005577 100%) !important;
     color: {BG} !important;
@@ -213,14 +203,10 @@ div[data-testid="stExpander"],
     width: 100%;
     padding: 10px 0;
 }}
-
-/* sidebar */
 section[data-testid="stSidebar"] {{
     background: {BG2} !important;
     border-left: 2px solid {BORDER};
 }}
-
-/* LG tip box */
 .lg-tip-box {{
     background: rgba(255,204,0,.07);
     border: 1px solid rgba(255,204,0,.35);
@@ -237,11 +223,7 @@ section[data-testid="stSidebar"] {{
     display: block;
     margin-bottom: 6px;
 }}
-
-/* dataframe */
 .stDataFrame {{ border-radius: 12px; overflow: hidden; border: 1px solid {BORDER} !important; }}
-
-/* footer */
 .cyber-footer {{
     background: {CARD_BG};
     border: 1px solid {BORDER};
@@ -284,353 +266,4 @@ def get_base_2026_db():
         "ON TIME SPORTS 1 HD":{"frequency":11861, "polarization": "Vertical",   "date": "2026-05-18", "source": "URC Egypt",           "category": "⚽ رياضة"},
         "ON TIME SPORTS 2 HD":{"frequency":11843, "polarization": "Vertical",   "date": "2026-05-18", "source": "URC Egypt",           "category": "⚽ رياضة"},
         "BEIN SPORTS HD1":   {"frequency": 12226, "polarization": "Horizontal", "date": "2026-05-15", "source": "beIN Sports",         "category": "⚽ رياضة"},
-        "WANNASAH HD":       {"frequency": 11938, "polarization": "Vertical",   "date": "2026-05-24", "source": "Nilesat Transponder", "category": "👶 أطفال وكرتون"},
-        "SPACE TOON":        {"frequency": 11977, "polarization": "Horizontal", "date": "2026-04-20", "source": "FlySat",              "category": "👶 أطفال وكرتون"},
-        "MBC3 HD":           {"frequency": 11938, "polarization": "Vertical",   "date": "2026-05-10", "source": "MBC Group",           "category": "👶 أطفال وكرتون"},
-        "NILE NEWS":         {"frequency": 11179, "polarization": "Vertical",   "date": "2026-05-22", "source": "Nilesat Official",    "category": "📰 أخبار وسياسة"},
-        "AL JAZEERA HD":     {"frequency": 11938, "polarization": "Horizontal", "date": "2026-05-20", "source": "Arabsat",             "category": "📰 أخبار وسياسة"},
-        "CAIRO NEWS":        {"frequency": 11843, "polarization": "Horizontal", "date": "2026-05-16", "source": "Nilesat",             "category": "📰 أخبار وسياسة"},
-        "MBC1 HD":           {"frequency": 11938, "polarization": "Vertical",   "date": "2026-05-11", "source": "MBC Group",           "category": "📺 قنوات عامة ومنوعات"},
-        "NILE TV HD":        {"frequency": 11179, "polarization": "Vertical",   "date": "2026-05-09", "source": "Nilesat",             "category": "📺 قنوات عامة ومنوعات"},
-        "DREAM TV HD":       {"frequency": 11843, "polarization": "Horizontal", "date": "2026-05-07", "source": "FlySat",              "category": "📺 قنوات عامة ومنوعات"},
-    }
-
-BRAIN_FILE = "ai_brain_db.json"
-
-def load_persistent_brain():
-    db = get_base_2026_db()
-    if os.path.exists(BRAIN_FILE):
-        try:
-            with open(BRAIN_FILE, "r", encoding="utf-8") as f:
-                db.update(json.load(f))
-        except Exception:
-            pass
-    return db
-
-def save_persistent_brain(db):
-    try:
-        with open(BRAIN_FILE, "w", encoding="utf-8") as f:
-            json.dump(db, f, ensure_ascii=False, indent=4)
-    except Exception:
-        pass
-
-MASTER_2026_DB = load_persistent_brain()
-TODAY_STR = "2026-05-25"
-TODAY_DT  = datetime.strptime(TODAY_STR, "%Y-%m-%d")
-
-ALL_CATEGORIES = [
-    "⛪ قنوات مسيحية",
-    "🕌 قنوات إسلامية",
-    "🎬 مسلسلات ودراما",
-    "🍿 أفلام عربية وأجنبية",
-    "👶 أطفال وكرتون",
-    "⚽ رياضة",
-    "📰 أخبار وسياسة",
-    "📺 قنوات عامة ومنوعات",
-]
-
-# ══════════════════════════════════════════════════════════════
-#  عدادات الرادار
-# ══════════════════════════════════════════════════════════════
-ch_today = ch_week = 0
-for v in MASTER_2026_DB.values():
-    try:
-        delta = (TODAY_DT - datetime.strptime(v.get("date", TODAY_STR), "%Y-%m-%d")).days
-        if delta == 0: ch_today += 1
-        if delta <= 7: ch_week  += 1
-    except Exception:
-        pass
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.markdown(f"""<div class="cyber-metric-card">
-        <div class="metric-label">🌟 رُصدت اليوم</div>
-        <div class="metric-num" style="color:{PINK};">{ch_today}</div>
-    </div>""", unsafe_allow_html=True)
-with col2:
-    st.markdown(f"""<div class="cyber-metric-card">
-        <div class="metric-label">⚡ آخر 7 أيام</div>
-        <div class="metric-num" style="color:{CYAN};">{ch_week}</div>
-    </div>""", unsafe_allow_html=True)
-with col3:
-    st.markdown(f"""<div class="cyber-metric-card">
-        <div class="metric-label">📦 إجمالي البنك</div>
-        <div class="metric-num" style="color:{GREEN};">{len(MASTER_2026_DB)}</div>
-    </div>""", unsafe_allow_html=True)
-
-st.write("")
-
-# ══════════════════════════════════════════════════════════════
-#  محرك البحث والرادار
-# ══════════════════════════════════════════════════════════════
-st.markdown(f"### {t['search_header']}")
-
-col_s, col_t, col_c = st.columns([5, 3, 3])
-with col_s:
-    search_q = st.text_input("", placeholder=t['search_placeholder'], key="radar_search").strip().upper()
-with col_t:
-    time_filter = st.selectbox("📅 النطاق الزمني:", [
-        "كل الترددات", "حصريات اليوم", "آخر 7 أيام", "مايو 2026"
-    ])
-with col_c:
-    cats_list = ["كل الفئات"] + list(dict.fromkeys(v.get("category","📺 قنوات عامة ومنوعات") for v in MASTER_2026_DB.values()))
-    cat_filter = st.selectbox("🗂️ الفئة:", cats_list)
-
-rows = []
-for ch_name, info in MASTER_2026_DB.items():
-    ch_cat   = info.get("category", "📺 قنوات عامة ومنوعات")
-    ch_date  = info.get("date", TODAY_STR)
-    ch_freq  = f"{info['frequency']} MHz ({info['polarization'][0]})"
-    ch_src   = info.get("source", "Live Feed")
-
-    if search_q and not any(search_q in x for x in [ch_name, ch_freq, ch_src.upper(), ch_date]):
-        continue
-    if cat_filter != "كل الفئات" and ch_cat != cat_filter:
-        continue
-    try:
-        diff = (TODAY_DT - datetime.strptime(ch_date, "%Y-%m-%d")).days
-        if time_filter == "حصريات اليوم"  and diff != 0:  continue
-        if time_filter == "آخر 7 أيام"    and diff > 7:   continue
-        if time_filter == "مايو 2026"      and not ch_date.startswith("2026-05"): continue
-    except Exception:
-        pass
-
-    rows.append({
-        "حالة الرصد":        "🌟 اليوم" if ch_date == TODAY_STR else "🟢 نشط",
-        "اسم القناة":        ch_name,
-        "التردد 2026":       ch_freq,
-        "الفئة":             ch_cat,
-        "تاريخ التحديث":     ch_date,
-        "المصدر":            ch_src,
-    })
-
-if rows:
-    st.dataframe(rows, use_container_width=True)
-else:
-    st.warning("⚠️ لا توجد ترددات مطابقة للفلاتر الحالية.")
-
-st.write("---")
-
-# ══════════════════════════════════════════════════════════════
-#  تصنيف AI
-# ══════════════════════════════════════════════════════════════
-def ai_classify(name: str) -> str:
-    n = name.upper().strip()
-    if n in MASTER_2026_DB and "category" in MASTER_2026_DB[n]:
-        return MASTER_2026_DB[n]["category"]
-    checks = [
-        (["CTV","AGHAPY","ME SAT","MESAT","MARMARKOS","KOOGI","SAT-7"], ALL_CATEGORIES[0]),
-        (["QURAN","RAHMA","MAJD"],                                       ALL_CATEGORIES[1]),
-        (["DRAMA","SERIES","ALWAN"],                                     ALL_CATEGORIES[2]),
-        (["CINEMA","ROTANA","AFLAM","MIX ONE","MBC2","ACTION"],          ALL_CATEGORIES[3]),
-        (["SPACE TOON","MBC3","MAJID","WANNASAH"],                       ALL_CATEGORIES[4]),
-        (["SPORT","ONTIME","BEIN"],                                      ALL_CATEGORIES[5]),
-        (["NEWS","JAZEERA","ARABIYA","CAIRO"],                           ALL_CATEGORIES[6]),
-    ]
-    for keywords, cat in checks:
-        if any(w in n for w in keywords):
-            return cat
-    return ALL_CATEGORIES[7]
-
-# ══════════════════════════════════════════════════════════════
-#  الـ Sidebar
-# ══════════════════════════════════════════════════════════════
-st.sidebar.markdown(f"### {t['mode_selector']}")
-app_mode = st.sidebar.radio("", [t['mode_edit'], t['mode_gen']])
-
-file_processed      = False
-file_bytes_out      = b""
-unique_channels_map = {}
-database_needs_save = False
-
-# ══════════════════════════════════════════════════════════════
-#  وضع التعديل
-# ══════════════════════════════════════════════════════════════
-if app_mode == t['mode_edit']:
-    uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
-
-    if uploaded_file is not None:
-        file_bytes = uploaded_file.read()
-        try:
-            file_text = file_bytes.decode('utf-8')
-        except UnicodeDecodeError:
-            file_text = file_bytes.decode('latin-1')
-
-        root = ET.fromstring(file_bytes)
-        legacy_tag = root.find(".//legacybroadcast")
-        is_modern  = legacy_tag is not None and legacy_tag.text
-
-        enforce_2026    = st.checkbox(t['update_freq_label'], value=True)
-        inject_excl     = st.checkbox(t['add_new_ch_label'],  value=True)
-
-        if is_modern:
-            broadcast_data = json.loads(legacy_tag.text)
-            uploaded_list  = broadcast_data.get("channelList", [])
-
-            # امتصاص قنوات جديدة
-            for c in uploaded_list:
-                name_up = c.get("channelName", "").strip().upper()
-                freq_up = c.get("frequency", 0)
-                pol_up  = c.get("polarization", "Horizontal")
-                if name_up and freq_up > 0:
-                    if name_up not in MASTER_2026_DB or MASTER_2026_DB[name_up]["frequency"] != int(freq_up):
-                        MASTER_2026_DB[name_up] = {
-                            "frequency":    int(freq_up),
-                            "polarization": pol_up,
-                            "date":         TODAY_STR,
-                            "source":       "User Flash Injection",
-                            "category":     ai_classify(name_up),
-                        }
-                        database_needs_save = True
-
-            for idx, ch in enumerate(uploaded_list):
-                ch_name = ch.get("channelName", "").strip()
-                name_up = ch_name.upper()
-                if not name_up:
-                    continue
-                if enforce_2026 and name_up in MASTER_2026_DB:
-                    ch["frequency"]    = int(MASTER_2026_DB[name_up]["frequency"])
-                    ch["polarization"] = MASTER_2026_DB[name_up]["polarization"]
-                unique_channels_map[name_up] = {
-                    "id": idx, "name": ch_name,
-                    "freq": str(ch["frequency"]), "raw_node": ch,
-                }
-        else:
-            item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text, re.DOTALL)
-            for item_str in item_blocks:
-                nm = re.search(r'<vchName>(.*?)</vchName>', item_str)
-                fr = re.search(r'<frequency>(.*?)</frequency>', item_str)
-                if nm and fr:
-                    name_up = nm.group(1).strip().upper()
-                    freq_up = fr.group(1).strip()
-                    if name_up and freq_up.isdigit():
-                        if name_up not in MASTER_2026_DB or MASTER_2026_DB[name_up]["frequency"] != int(freq_up):
-                            MASTER_2026_DB[name_up] = {
-                                "frequency":    int(freq_up),
-                                "polarization": "Vertical",
-                                "date":         TODAY_STR,
-                                "source":       "User Legacy Flash",
-                                "category":     ai_classify(name_up),
-                            }
-                            database_needs_save = True
-
-            for idx, item_str in enumerate(item_blocks):
-                nm = re.search(r'<vchName>(.*?)</vchName>', item_str)
-                fr = re.search(r'<frequency>(.*?)</frequency>', item_str)
-                if not nm:
-                    continue
-                ch_name = nm.group(1).strip()
-                name_up = ch_name.upper()
-                old_freq = fr.group(1).strip() if fr else "0"
-                if enforce_2026 and name_up in MASTER_2026_DB:
-                    vf = MASTER_2026_DB[name_up]["frequency"]
-                    item_str = re.sub(r'<frequency>\d+</frequency>', f'<frequency>{vf}</frequency>', item_str)
-                    old_freq = str(vf)
-                unique_channels_map[name_up] = {
-                    "id": idx, "name": ch_name,
-                    "freq": old_freq, "raw_str": item_str,
-                }
-
-        if database_needs_save:
-            save_persistent_brain(MASTER_2026_DB)
-            st.toast("📡 تم حفظ الترددات الجديدة في بنك البيانات!", icon="🧠")
-
-        st.success(t['success_read'] + ("Smart webOS" if is_modern else "Legacy"))
-        file_processed = True
-
-# ══════════════════════════════════════════════════════════════
-#  وضع التوليد
-# ══════════════════════════════════════════════════════════════
-else:
-    col_m, col_c2 = st.columns(2)
-    with col_m:
-        model_choice = st.selectbox(t['model_label'], [t['model_modern'], t['model_legacy']])
-    with col_c2:
-        country_choice = st.selectbox(t['country_label'], [t['country_egy'], t['country_ksa']])
-
-    country_code = "NAFR" if "Egypt" in country_choice or "مصر" in country_choice else "MIDE"
-
-    if st.button(t['btn_generate']):
-        st.session_state.generated_active = True
-
-    if st.session_state.get('generated_active'):
-        for idx, (ch_name, data) in enumerate(MASTER_2026_DB.items()):
-            unique_channels_map[ch_name] = {
-                "id":   idx,
-                "name": ch_name,
-                "freq": str(data["frequency"]),
-                "raw_node": {
-                    "channelName":  ch_name,
-                    "frequency":    data["frequency"],
-                    "polarization": data["polarization"],
-                    "majorNumber":  0,
-                    "serviceType":  "1",
-                    "scrambled":    "false",
-                    "symbolRate":   "27500",
-                },
-            }
-        file_processed = True
-        st.success(t['success_gen'] + country_code)
-
-# ══════════════════════════════════════════════════════════════
-#  بناء الملف وتحميله
-# ══════════════════════════════════════════════════════════════
-if file_processed and unique_channels_map:
-    st.markdown(f"""<div class="lg-tip-box">
-        <strong>💡 {t['lg_trick_title']}</strong>{t['lg_trick_text']}
-    </div>""", unsafe_allow_html=True)
-
-    user_priority = st.multiselect(t['multiselect_label'], options=ALL_CATEGORIES, default=[])
-    final_priority = list(user_priority) + [c for c in ALL_CATEGORIES if c not in user_priority]
-
-    sorted_channels = sorted(
-        unique_channels_map.values(),
-        key=lambda x: final_priority.index(ai_classify(x["name"]))
-    )
-
-    # بناء الملف
-    if app_mode == t['mode_edit'] and 'is_modern' in dir() and is_modern:
-        final_list = []
-        for i, ch in enumerate(sorted_channels, 1):
-            node = ch["raw_node"]
-            node["majorNumber"] = i
-            final_list.append(node)
-        broadcast_data["channelList"] = final_list
-        legacy_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
-        file_bytes_out = ET.tostring(root, encoding="utf-8")
-    else:
-        items_out = []
-        for i, ch in enumerate(sorted_channels, 1):
-            if "raw_str" in ch:
-                s = ch["raw_str"]
-                s = re.sub(r'<prNum>\d+</prNum>', f'<prNum>{i}</prNum>', s) \
-                    if "<prNum>" in s \
-                    else s.replace("<ITEM>", f"<ITEM>\r\n<prNum>{i}</prNum>")
-                items_out.append(s)
-            else:
-                node = ch["raw_node"]
-                items_out.append(
-                    f"<ITEM>\r\n<prNum>{i}</prNum>\r\n"
-                    f"<vchName>{node['channelName']}</vchName>\r\n"
-                    f"<frequency>{node['frequency']}</frequency>\r\n"
-                    f"<polarization>{node['polarization']}</polarization>\r\n"
-                    f"</ITEM>"
-                )
-        file_bytes_out = "\r\n".join(items_out).encode("utf-8")
-
-    st.success(t['ready_msg'])
-    st.download_button(
-        label     = t['btn_download_tll'],
-        data      = file_bytes_out,
-        file_name = "GlobalClone00001.TLL",
-        mime      = "application/octet-stream",
-    )
-    st.caption(f"📊 {len(sorted_channels)} {t['channels_count']}")
-
-# ── Footer ─────────────────────────────────────────────────────
-st.markdown("""
-<div class="cyber-footer">
-    <div style="font-size:15px;font-weight:700;color:#ff0066;">🛠️ DEVELOPER ENG: RAFIK NATHAN</div>
-    <div style="font-size:12px;color:#7090aa;margin-top:4px;">📱 +201280339779 &nbsp;|&nbsp; rafikrambo113@gmail.com</div>
-</div>
-""", unsafe_allow_html=True)
+        "WANNASAH HD":
