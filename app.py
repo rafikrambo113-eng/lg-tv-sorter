@@ -1,32 +1,32 @@
 """
-RAMBO – AI Channel Generator  (pages/2_🛰️_AI_Channel_Generator.py)
-────────────────────────────────────────────────────────────────────
-• يبحث Claude على الإنترنت حياً عن أحدث قنوات وترددات القمر المختار
-• يولّد ملف GlobalClone00001.TLL جاهز للشاشة بدون رفع أي ملف
-• يدعم: Nilesat 7°W – Arabsat 26°E – Hotbird 13°E – Astra 19.2°E
+RAMBO – Smart Channel Editor  (pages/2_🔧_Smart_Channel_Editor.py)
+──────────────────────────────────────────────────────────────────
+صفحة منفصلة تقوم بـ:
+  1. رفع ملف TLL وقراءته
+  2. ترتيب القنوات حسب فئات يختارها المستخدم
+  3. تحديث الترددات المتغيرة من قاعدة بيانات داخلية
+  4. إضافة قنوات جديدة متاحة على القمر المكتشف
+  5. تحميل الملف النهائي + تقرير نصي
 """
 
 import streamlit as st
+import xml.etree.ElementTree as ET
 import json
 import re
-import requests
-from datetime import datetime
-import xml.etree.ElementTree as ET
 
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG
 # ══════════════════════════════════════════════════════════
 st.set_page_config(
-    page_title="RAMBO – AI Channel Generator",
-    page_icon="🛰️",
+    page_title="RAMBO – Smart Channel Editor",
+    page_icon="🔧",
     layout="wide",
 )
 
 # ══════════════════════════════════════════════════════════
 #  SESSION STATE
 # ══════════════════════════════════════════════════════════
-for k, v in [('lang', 'ar'), ('theme', 'dark'), ('ai_result', None),
-             ('ai_sat', ''), ('ai_model', '')]:
+for k, v in [('lang', 'ar'), ('theme', 'dark')]:
     if k not in st.session_state:
         st.session_state[k] = v
 
@@ -35,100 +35,196 @@ for k, v in [('lang', 'ar'), ('theme', 'dark'), ('ai_result', None),
 # ══════════════════════════════════════════════════════════
 UI = {
     'ar': {
-        'title':         "🛰️ RAMBO – مولّد القنوات بالذكاء الاصطناعي",
-        'subtitle':      "يبحث على الإنترنت حياً ويولّد ملف TLL جاهز لشاشة LG بدون رفع أي ملف",
-        'sat_label':     "📡 اختر القمر الصناعي",
-        'country_label': "🌍 البلد / المنطقة (اختياري – لتخصيص النتائج)",
-        'model_label':   "📺 موديل الشاشة (مثال: OLED55C1PVA)",
-        'run_btn':       "🚀 ابدأ البحث وتوليد الملف",
-        'spinner':       "⏳ الذكاء الاصطناعي يبحث على الإنترنت عن أحدث البيانات...",
-        'no_key':        "⚠️ أدخل Anthropic API Key في الشريط الجانبي أولاً.",
-        'api_label':     "🔑 Anthropic API Key",
-        'result_title':  "📊 نتائج البحث الحي",
-        'new_title':     "🆕 القنوات الجديدة المكتشفة",
-        'dl_tll':        "📥 تحميل GlobalClone00001.TLL",
-        'dl_txt':        "📄 تحميل تقرير القنوات (.txt)",
-        'ready':         "✅ الملفات جاهزة للتحميل!",
-        'err':           "❌ خطأ: ",
-        'channels':      "قناة",
-        'new_lbl':       "جديدة",
-        'fta_lbl':       "مجانية FTA",
-        'enc_lbl':       "مشفرة",
+        'title':           "🔧 RAMBO – المحرر الذكي للقنوات",
+        'subtitle':        "ارفع ملف القنوات → رتّب + حدّث الترددات + أضف قنوات جديدة → حمّل الملف النهائي",
+        'upload_label':    "🚀 ارفع ملف القنوات (GlobalClone00001.TLL)",
+        'success_read':    "✅ تم قراءة الملف بنجاح! الموديل: ",
+        'opt_sort':        "🗂️ ترتيب القنوات حسب الفئات",
+        'opt_freq':        "⚛️ تحديث الترددات المتغيرة تلقائياً",
+        'opt_new':         "✨ إضافة القنوات الجديدة المتاحة",
+        'sort_title':      "🎛️ اختر ترتيب الفئات (اضغط بالترتيب المفضل)",
+        'sort_tip':        "💡 الفئة الأولى ستظهر في أعلى قائمة التلفزيون",
+        'sort_label':      "اختر الفئات بالترتيب:",
+        'preview_title':   "📊 معاينة توزيع القنوات:",
+        'freq_title':      "🔁 تقرير تحديث الترددات:",
+        'new_title':       "🆕 القنوات الجديدة المضافة:",
+        'ready':           "🌌 الملف جاهز للتحميل!",
+        'dl_tll':          "📥 تحميل GlobalClone00001.TLL",
+        'dl_txt':          "📄 تحميل تقرير القنوات (.txt)",
+        'channels':        "قناة",
+        'lg_tip_title':    "💡 نصيحة مهمة بعد رفع الملف على شاشة LG:",
+        'lg_tip_text':     (
+            "إذا لاحظت أن الترتيب غير صحيح بعد رفع الملف على الشاشة، قم بالتالي:\n"
+            "1. الإعدادات ← القنوات ← مدير القنوات\n"
+            "2. تعديل كل القنوات\n"
+            "3. حدّد كل القنوات ← استعادة (Restore)\n"
+            "هذه الخطوة تجبر الشاشة على تفعيل الترتيب الجديد."
+        ),
+        'no_file':         "⬆️ ارفع ملف TLL أولاً للبدء.",
+        'col_num':         "الرقم",
+        'col_name':        "اسم القناة",
+        'col_cat':         "الفئة",
+        'col_freq':        "التردد",
+        'search_label':    "🔍 ابحث عن قناة:",
+        'search_ph':       "اكتب اسم القناة...",
+        'no_results':      "⚠️ لا توجد نتائج مطابقة.",
     },
     'en': {
-        'title':         "🛰️ RAMBO – AI Channel Generator",
-        'subtitle':      "Live Internet Search → Instant TLL file for LG TV — no file upload needed",
-        'sat_label':     "📡 Select Satellite",
-        'country_label': "🌍 Country / Region (optional – to refine results)",
-        'model_label':   "📺 TV Model (e.g. OLED55C1PVA)",
-        'run_btn':       "🚀 Start AI Search & Generate",
-        'spinner':       "⏳ AI is performing a live search for the latest channel data...",
-        'no_key':        "⚠️ Please enter your Anthropic API Key in the sidebar first.",
-        'api_label':     "🔑 Anthropic API Key",
-        'result_title':  "📊 Live Search Results",
-        'new_title':     "🆕 Newly Discovered Channels",
-        'dl_tll':        "📥 Download GlobalClone00001.TLL",
-        'dl_txt':        "📄 Download Channel Report (.txt)",
-        'ready':         "✅ Files are ready for download!",
-        'err':           "❌ Error: ",
-        'channels':      "Channels",
-        'new_lbl':       "New",
-        'fta_lbl':       "FTA",
-        'enc_lbl':       "Encrypted",
+        'title':           "🔧 RAMBO – Smart Channel Editor",
+        'subtitle':        "Upload TLL → Sort + Update Freqs + Add New Channels → Download Final File",
+        'upload_label':    "🚀 Upload Channel File (GlobalClone00001.TLL)",
+        'success_read':    "✅ File read successfully! Model: ",
+        'opt_sort':        "🗂️ Sort channels by category",
+        'opt_freq':        "⚛️ Auto-update changed frequencies",
+        'opt_new':         "✨ Inject new available channels",
+        'sort_title':      "🎛️ Choose category order (click in preferred order)",
+        'sort_tip':        "💡 First category appears at the top of your TV list",
+        'sort_label':      "Select categories in order:",
+        'preview_title':   "📊 Channel distribution preview:",
+        'freq_title':      "🔁 Frequency update report:",
+        'new_title':       "🆕 Newly injected channels:",
+        'ready':           "🌌 File ready for download!",
+        'dl_tll':          "📥 Download GlobalClone00001.TLL",
+        'dl_txt':          "📄 Download Channel Report (.txt)",
+        'channels':        "Channels",
+        'lg_tip_title':    "💡 Important tip after uploading to LG TV:",
+        'lg_tip_text':     (
+            "If channels appear unsorted after uploading:\n"
+            "1. Settings → Channels → Channel Manager\n"
+            "2. Edit All Channels\n"
+            "3. Select All → Restore\n"
+            "This forces the TV to apply the new sort order."
+        ),
+        'no_file':         "⬆️ Upload a TLL file above to get started.",
+        'col_num':         "No.",
+        'col_name':        "Channel Name",
+        'col_cat':         "Category",
+        'col_freq':        "Frequency",
+        'search_label':    "🔍 Search channel:",
+        'search_ph':       "Type channel name...",
+        'no_results':      "⚠️ No matching channels found.",
     },
 }
 t = UI[st.session_state.lang]
 
 # ══════════════════════════════════════════════════════════
-#  SATELLITES & COUNTRIES
+#  DATABASES
 # ══════════════════════════════════════════════════════════
-SATS = {
-    "🇪🇬  Nilesat 7°W  (عربي / Arab)":          "Nilesat 7°W",
-    "🇸🇦  Arabsat / Badr 26°E":                  "Arabsat/Badr 26°E",
-    "🇪🇺  Hotbird 13°E  (Europe)":               "Hotbird 13°E",
-    "🌍  Astra 19.2°E  (Global)":                "Astra 19.2°E",
+
+# ── تحديثات الترددات الرسمية (Nilesat 7°W) ──
+FREQ_DB = {
+    "AL HAYAT":     {"frequency": 12207, "polarization": "Vertical",   "update_date": "2026-05-10"},
+    "SAT-7 KIDS":   {"frequency": 11353, "polarization": "Vertical",   "update_date": "2026-04-18"},
+    "SAT-7 ARABIC": {"frequency": 11353, "polarization": "Vertical",   "update_date": "2026-04-18"},
+    "ALKARMA ME 1": {"frequency": 11096, "polarization": "Horizontal", "update_date": "2026-02-05"},
+    "AGHAPY TV":    {"frequency": 11179, "polarization": "Horizontal", "update_date": "2026-03-12"},
+    "CTV":          {"frequency": 12022, "polarization": "Vertical",   "update_date": "2026-05-01"},
+    "MBC 2":        {"frequency": 11938, "polarization": "Vertical",   "update_date": "2026-01-20"},
+    "QATAR TV HD":  {"frequency": 10834, "polarization": "Horizontal", "update_date": "2026-05-14"},
+    "ON TIME SPORTS 1 HD": {"frequency": 11861, "polarization": "Vertical", "update_date": "2026-04-01"},
+    "ON TIME SPORTS 2 HD": {"frequency": 11861, "polarization": "Vertical", "update_date": "2026-04-01"},
+    "CBC":          {"frequency": 10853, "polarization": "Vertical",   "update_date": "2026-03-20"},
+    "CBC DRAMA":    {"frequency": 10853, "polarization": "Vertical",   "update_date": "2026-03-20"},
+    "MBC MASR":     {"frequency": 11938, "polarization": "Vertical",   "update_date": "2026-01-20"},
+    "MBC MASR 2":   {"frequency": 11938, "polarization": "Vertical",   "update_date": "2026-01-20"},
+    "DMC":          {"frequency": 11727, "polarization": "Vertical",   "update_date": "2026-02-15"},
+    "DMC DRAMA":    {"frequency": 11727, "polarization": "Vertical",   "update_date": "2026-02-15"},
 }
 
-COUNTRIES = [
-    "─── اختر ───",
-    "مصر / Egypt", "السعودية / Saudi Arabia", "الإمارات / UAE",
-    "المغرب / Morocco", "تونس / Tunisia", "الجزائر / Algeria",
-    "لبنان / Lebanon", "العراق / Iraq", "سوريا / Syria",
-    "ليبيا / Libya", "السودان / Sudan", "قطر / Qatar",
-    "United Kingdom", "Germany", "France", "Italy",
-    "Spain", "Netherlands", "Turkey", "Poland",
+# ── قنوات جديدة للحقن ──
+NEW_CHANNELS = [
+    {"name": "ON TIME SPORTS 4 HD", "frequency": 11861, "polarization": "Vertical",   "launch": "2026-05-01", "source": "FlySat"},
+    {"name": "CBC SOFRA HD",         "frequency": 10853, "polarization": "Vertical",   "launch": "2026-04-15", "source": "Nilesat Official"},
+    {"name": "WATCH IT HD",          "frequency": 11727, "polarization": "Vertical",   "launch": "2026-03-10", "source": "KingOfSat"},
+    {"name": "أبوظبي الرياضية 3",   "frequency": 11747, "polarization": "Horizontal", "launch": "2026-02-20", "source": "Arabsat"},
+    {"name": "ROTANA COMEDY",        "frequency": 12034, "polarization": "Horizontal", "launch": "2026-01-05", "source": "FlySat"},
 ]
 
 # ══════════════════════════════════════════════════════════
-#  CSS  – same cyber palette as main app
+#  CATEGORIES
+# ══════════════════════════════════════════════════════════
+def get_categories():
+    if st.session_state.lang == 'ar':
+        return [
+            "⛪ قنوات مسيحية",
+            "🕌 قنوات إسلامية",
+            "🎬 مسلسلات ودراما",
+            "🍿 أفلام",
+            "👶 أطفال وكرتون",
+            "⚽ رياضة",
+            "📰 أخبار وسياسة",
+            "🎵 موسيقى وترفيه",
+            "📺 قنوات عامة ومنوعات",
+        ]
+    else:
+        return [
+            "⛪ Christian",
+            "🕌 Islamic",
+            "🎬 Drama & Series",
+            "🍿 Movies",
+            "👶 Kids & Cartoon",
+            "⚽ Sports",
+            "📰 News & Politics",
+            "🎵 Music & Entertainment",
+            "📺 General",
+        ]
+
+def classify(name: str) -> str:
+    n = name.upper()
+    cats = get_categories()
+    if any(w in n for w in ["CTV","AGHAPY","KARMA","NOURSAT","SAT-7","MESAT","MIRAYA","FAITH"]): return cats[0]
+    if any(w in n for w in ["QURAN","RAHMA","MAJD","MAKKA","HAYAT","IQRAA","HUDA","RESALA"]): return cats[1]
+    if any(w in n for w in ["DRAMA","SERIES","MOSALSALAT","KHOLASA","CBC DRAMA","DMC DRAMA","MASRAWY"]): return cats[2]
+    if any(w in n for w in ["CINEMA","ROTANA","AFLAM","MIX","FOX","MBC2","ACTION","MOVIE","MISHMISH","COMEDY","AFLAM"]): return cats[3]
+    if any(w in n for w in ["SPACETOON","SPACE TOON","CN ","MAJID","KIDS","TOM","CARTOON","JEEM","TOYOR"]): return cats[4]
+    if any(w in n for w in ["SPORT","ONTIME","ON TIME","KASS","AD SPORT","BEIN","SSC","MATCH","GOAL"]): return cats[5]
+    if any(w in n for w in ["NEWS","JAZEERA","ARABIYA","HADATH","CAIRO","EXTRA","SKY NEWS","BBC","CNN","MEKAMELEEN"]): return cats[6]
+    if any(w in n for w in ["MUSIC","MAZZIKA","MELODY","MTV","WATAN","NILE CULTURE","NILE SONG"]): return cats[7]
+    return cats[8]
+
+# ══════════════════════════════════════════════════════════
+#  CSS
 # ══════════════════════════════════════════════════════════
 dark = st.session_state.theme == 'dark'
-BG   = "radial-gradient(circle at 50% 50%,#110926 0%,#05020d 100%)" if dark else "radial-gradient(circle at 50%,#f4f5f7,#e4e7eb)"
-TC   = "#00f0ff" if dark else "#0d0722"
-BBG  = "rgba(13,7,33,0.85)"              if dark else "#fff"
-BBR  = "#00f0ff"                          if dark else "#ff007f"
-BSH  = "rgba(0,240,255,.35)"             if dark else "rgba(255,0,127,.15)"
-TSH  = "0 0 5px rgba(0,240,255,.4)"      if dark else "none"
-FF   = "'Cairo',sans-serif" if st.session_state.lang == 'ar' else "'Orbitron',sans-serif"
+BG  = "radial-gradient(circle at 50% 50%,#110926 0%,#05020d 100%)" if dark else "radial-gradient(circle at 50%,#f4f5f7,#e4e7eb)"
+TC  = "#00f0ff" if dark else "#0d0722"
+BBG = "rgba(13,7,33,0.85)"              if dark else "#fff"
+BBR = "#00f0ff"                          if dark else "#ff007f"
+BSH = "rgba(0,240,255,.35)"             if dark else "rgba(255,0,127,.15)"
+TSH = "0 0 5px rgba(0,240,255,.4)"      if dark else "none"
+FF  = "'Cairo',sans-serif" if st.session_state.lang == 'ar' else "'Orbitron',sans-serif"
+FTR = "#080314"
+FTTC = "#ffffff"
 
 st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Cairo:wght@400;700&display=swap');
 .main{{background:{BG}!important;color:{TC}!important;font-family:{FF};}}
 h1{{color:#ff007f!important;text-shadow:0 0 10px #ff007f,0 0 25px rgba(255,0,127,.4)!important;text-align:center;font-weight:900;margin-top:5px;}}
-h3,p,label,.stMarkdown,.stInfo,div[data-testid="stMarkdownContainer"] p{{color:{TC}!important;text-shadow:{TSH};}}
-.stTextInput>div>div>input,.stSelectbox>div>div{{background:{BBG}!important;color:{TC}!important;border:2px solid {BBR}!important;border-radius:10px!important;}}
-.stButton>button{{background:linear-gradient(135deg,#ff007f,#aa0055)!important;color:#fff!important;border:2px solid #ff007f!important;border-radius:12px!important;font-weight:bold;font-size:16px;padding:10px;}}
-.box{{background:{BBG};border:2px solid {BBR};box-shadow:0 5px 15px {BSH};border-radius:14px;padding:18px;margin-bottom:18px;}}
-.chip{{display:inline-block;background:linear-gradient(135deg,#ff007f,#aa0055);color:#fff;padding:4px 14px;border-radius:20px;font-size:13px;margin:3px;font-weight:bold;}}
-.chip-cyan{{background:linear-gradient(135deg,#00f0ff,#0080a0);}}
-.ch-row{{background:rgba(0,240,255,.04);border-left:3px solid #ff007f;padding:7px 14px;margin:3px 0;border-radius:6px;font-size:13px;}}
-.new-badge{{background:#ff007f;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:6px;}}
+h3,p,label,.stMarkdown,div[data-testid="stMarkdownContainer"] p{{color:{TC}!important;text-shadow:{TSH};}}
+.stTextInput>div>div>input{{background:{BBG}!important;color:{TC}!important;border:2px solid {BBR}!important;border-radius:10px!important;}}
+.stCheckbox,.stMultiSelect,div[data-testid="stExpander"],div[data-testid="stFileUploader"]{{
+  background:{BBG}!important;border:2px solid {BBR}!important;
+  box-shadow:0 5px 15px {BSH}!important;border-radius:14px!important;padding:18px!important;margin-bottom:20px!important;}}
+.stButton>button{{background:linear-gradient(135deg,#ff007f,#aa0055)!important;color:#fff!important;
+  border:2px solid #ff007f!important;border-radius:12px!important;font-weight:bold;}}
+.tip-box{{background:{BBG};border:2px solid #ff007f;box-shadow:0 5px 15px rgba(255,0,127,.25);
+  border-radius:14px;padding:18px;margin-bottom:20px;}}
+.chip{{display:inline-block;background:linear-gradient(135deg,#ff007f,#aa0055);color:#fff;
+  padding:4px 14px;border-radius:20px;font-size:13px;margin:3px;font-weight:bold;}}
+.chip-c{{background:linear-gradient(135deg,#00f0ff,#0080a0);}}
+.ch-row{{background:rgba(0,240,255,.04);border-left:3px solid #ff007f;
+  padding:7px 14px;margin:3px 0;border-radius:6px;font-size:13px;}}
+.futuristic-cyber-footer{{background:{FTR};border:2px solid #00f0ff;color:{FTTC}!important;
+  padding:35px;text-align:center;border-radius:20px;margin-top:65px;font-family:'Orbitron',sans-serif;}}
+.footer-dev{{color:#ff007f;font-size:26px;font-weight:bold;}}
+.cyber-whatsapp-btn{{color:#25d366!important;padding:14px 35px;border-radius:35px;
+  display:inline-block;font-weight:bold;border:2px solid #25d366;text-decoration:none;margin-top:20px;}}
 </style>
 """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════
-#  TOP BAR – Language / Theme toggles
+#  TOP BAR
 # ══════════════════════════════════════════════════════════
 c1, c2, _ = st.columns([1.2, 1.5, 8])
 with c1:
@@ -142,327 +238,320 @@ with c2:
 
 st.title(t['title'])
 st.markdown(f"<h3 style='text-align:center'>{t['subtitle']}</h3>", unsafe_allow_html=True)
+st.write("---")
 
 # ══════════════════════════════════════════════════════════
-#  SIDEBAR
+#  FILE UPLOAD
 # ══════════════════════════════════════════════════════════
-with st.sidebar:
-    st.markdown("### ⚙️ إعدادات / Settings")
-    api_key = st.text_input(t['api_label'], type="password", placeholder="sk-ant-api03-...")
-    st.markdown("---")
-    st.markdown("🔗 [احصل على مفتاح مجاني](https://console.anthropic.com/)")
-    st.markdown("""
-**كيف يعمل الذكاء الاصطناعي؟**
+uploaded = st.file_uploader(t['upload_label'], type=["TLL"])
 
-1. يبحث على `lyngsat.com`
-2. يبحث على `kingofsat.net`  
-3. يبحث على `flysat.com`
-4. يدمج النتائج ويولّد ملف TLL
-""")
+if not uploaded:
+    st.info(t['no_file'])
+    st.stop()
+
+# ── Read file ──
+file_bytes = uploaded.read()
+try:
+    file_text = file_bytes.decode('utf-8')
+except UnicodeDecodeError:
+    file_text = file_bytes.decode('latin-1')
+
+root = ET.fromstring(file_bytes)
+model_el = root.find(".//ModelName")
+model_name = model_el.text if model_el is not None else "Unknown LG TV"
+lb_tag = root.find(".//legacybroadcast")
+is_modern = lb_tag is not None and lb_tag.text
+
+st.info(f"{t['success_read']} **{model_name}**")
+
+# ── LG Tip box ──
+st.markdown(f"""
+<div class="tip-box">
+  <h4 style="color:#ff007f;margin-top:0;">{t['lg_tip_title']}</h4>
+  <p style="white-space:pre-line;margin-bottom:0;font-size:14px;">{t['lg_tip_text']}</p>
+</div>
+""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════
-#  MAIN CONTROLS
+#  OPTIONS
+# ══════════════════════════════════════════════════════════
+co1, co2, co3 = st.columns(3)
+with co1:
+    do_sort = st.checkbox(t['opt_sort'],  value=True)
+with co2:
+    do_freq = st.checkbox(t['opt_freq'],  value=True)
+with co3:
+    do_new  = st.checkbox(t['opt_new'],   value=True)
+
+# ══════════════════════════════════════════════════════════
+#  PARSE CHANNELS
+# ══════════════════════════════════════════════════════════
+channels_raw = []   # list of dicts: {name, freq, raw_node/raw_str}
+freq_changes = []
+injected     = []
+
+if is_modern:
+    bd = json.loads(lb_tag.text)
+    ch_list = bd.get("channelList", [])
+
+    # ── Inject new ──
+    if do_new:
+        for nc in NEW_CHANNELS:
+            ch_list.append({
+                "channelName": nc["name"],
+                "frequency":   nc["frequency"],
+                "polarization":nc["polarization"],
+                "majorNumber": 0,
+                "serviceType": "1",
+                "scrambled":   "false",
+                "symbolRate":  "27500",
+            })
+            injected.append(nc)
+
+    for idx, ch in enumerate(ch_list):
+        name    = ch.get("channelName", "Unknown")
+        old_f   = str(ch.get("frequency", "N/A"))
+        name_up = name.upper()
+
+        if do_freq and name_up in FREQ_DB:
+            new_f = str(FREQ_DB[name_up]["frequency"])
+            if old_f != new_f:
+                freq_changes.append({
+                    (t['col_name']):       name,
+                    (t['col_cat']):        classify(name),
+                    "التردد القديم / Old": f"{old_f} MHz",
+                    "التردد الجديد / New": f"{new_f} MHz",
+                    "تاريخ التحديث":       FREQ_DB[name_up]["update_date"],
+                })
+                ch["frequency"]    = int(new_f)
+                ch["polarization"] = FREQ_DB[name_up]["polarization"]
+                old_f = new_f
+
+        channels_raw.append({"name": name, "freq": old_f, "raw_node": ch})
+
+else:
+    # ── Legacy XML format ──
+    items = re.findall(r'(<ITEM>.*?</ITEM>)', file_text, re.DOTALL)
+
+    for idx, item_str in enumerate(items):
+        nm = re.search(r'<vchName>(.*?)</vchName>', item_str)
+        fr = re.search(r'<frequency>(.*?)</frequency>', item_str)
+        name  = nm.group(1) if nm else "Unknown"
+        old_f = fr.group(1) if fr else "N/A"
+        name_up = name.upper()
+
+        if do_freq and name_up in FREQ_DB:
+            new_f = str(FREQ_DB[name_up]["frequency"])
+            if old_f != new_f:
+                freq_changes.append({
+                    (t['col_name']):       name,
+                    (t['col_cat']):        classify(name),
+                    "التردد القديم / Old": f"{old_f} MHz",
+                    "التردد الجديد / New": f"{new_f} MHz",
+                    "تاريخ التحديث":       FREQ_DB[name_up]["update_date"],
+                })
+                item_str = re.sub(r'<frequency>\d+</frequency>',
+                                  f'<frequency>{new_f}</frequency>', item_str)
+                old_f = new_f
+
+        channels_raw.append({"name": name, "freq": old_f, "raw_str": item_str})
+
+    if do_new:
+        for nc in NEW_CHANNELS:
+            new_item = (
+                f"<ITEM>\r\n<prNum>0</prNum>\r\n"
+                f"<vchName>{nc['name']}</vchName>\r\n"
+                f"<frequency>{nc['frequency']}</frequency>\r\n"
+                f"<serviceType>1</serviceType>\r\n</ITEM>"
+            )
+            channels_raw.append({"name": nc["name"], "freq": str(nc["frequency"]), "raw_str": new_item})
+            injected.append(nc)
+
+# ══════════════════════════════════════════════════════════
+#  SEARCH BAR
 # ══════════════════════════════════════════════════════════
 st.write("---")
-col1, col2, col3 = st.columns(3)
-with col1:
-    sat_key  = st.selectbox(t['sat_label'], list(SATS.keys()))
-    sat_name = SATS[sat_key]
-with col2:
-    country_raw = st.selectbox(t['country_label'], COUNTRIES)
-    country = "" if country_raw.startswith("─") else country_raw
-with col3:
-    tv_model = st.text_input(t['model_label'], value="LG-OLED55C1", placeholder="OLED55C1PVA")
-
-# ══════════════════════════════════════════════════════════
-#  CLAUDE AI – LIVE WEB SEARCH
-# ══════════════════════════════════════════════════════════
-SYSTEM_PROMPT = """You are a satellite TV database expert. You have web search access.
-
-Search lyngsat.com, kingofsat.net, and flysat.com for the MOST CURRENT channel list for the requested satellite.
-
-Return ONLY a valid JSON object — no markdown, no explanations, no text outside the JSON.
-
-Schema:
-{
-  "satellite": "string",
-  "scan_date": "YYYY-MM-DD",
-  "summary": "one sentence in Arabic describing the scan result",
-  "channels": [
-    {
-      "name": "CHANNEL NAME IN CAPS",
-      "frequency": 12345,
-      "symbol_rate": 27500,
-      "polarization": "H",
-      "encryption": "FTA",
-      "category": "category string",
-      "is_new": false,
-      "language": "Arabic"
-    }
-  ],
-  "stats": {
-    "total": 0,
-    "new_channels": 0,
-    "fta": 0,
-    "encrypted": 0
-  }
-}
-
-Rules:
-- polarization: ONLY "H" or "V"
-- encryption: ONLY "FTA" or "Encrypted"  
-- is_new: true if channel launched in last 6 months
-- category must be one of:
-  قنوات مسيحية | قنوات إسلامية | مسلسلات ودراما | أفلام | أطفال وكرتون |
-  رياضة | أخبار وسياسة | موسيقى وترفيه | قنوات عامة ومنوعات |
-  Entertainment | News | Sports | Movies | Kids | Religious | Music | General
-- Include AT LEAST 30 channels, ideally 50-100+ for major satellites
-- Return ONLY the JSON object, nothing else
-"""
-
-def search_channels_ai(api_key: str, sat: str, country: str) -> dict:
-    country_line = f"Focus especially on channels popular in: {country}.\n" if country else ""
-    user_msg = (
-        f"Satellite: {sat}\n"
-        f"{country_line}"
-        "Search lyngsat.com, kingofsat.net, flysat.com RIGHT NOW for the latest complete "
-        f"channel list on {sat}. Return the full JSON."
-    )
-
-    payload = {
-        "model": "claude-sonnet-4-20250514",
-        "max_tokens": 8000,
-        "system": SYSTEM_PROMPT,
-        "tools": [{"type": "web_search_20250305", "name": "web_search"}],
-        "messages": [{"role": "user", "content": user_msg}],
-    }
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-    }
-
-    resp = requests.post(
-        "https://api.anthropic.com/v1/messages",
-        json=payload,
-        headers=headers,
-        timeout=180,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-
-    # Collect all text blocks
-    full_text = "".join(
-        b.get("text", "") for b in data.get("content", [])
-        if isinstance(b, dict) and b.get("type") == "text"
-    )
-
-    # Strip markdown fences
-    clean = re.sub(r"```(?:json)?", "", full_text).strip()
-    # Extract first JSON object
-    start = clean.find("{")
-    end   = clean.rfind("}") + 1
-    if start == -1:
-        raise ValueError(f"No JSON in response. Raw: {full_text[:500]}")
-
-    return json.loads(clean[start:end])
-
-
-# ══════════════════════════════════════════════════════════
-#  BUILD TLL  (modern legacybroadcast format)
-# ══════════════════════════════════════════════════════════
-def build_tll(channels: list, tv_model: str, sat: str) -> bytes:
-    ch_list = []
-    for idx, ch in enumerate(channels, 1):
-        ch_list.append({
-            "majorNumber":  idx,
-            "channelName":  ch.get("name", ""),
-            "frequency":    int(ch.get("frequency", 0)),
-            "symbolRate":   str(ch.get("symbol_rate", 27500)),
-            "polarization": ch.get("polarization", "H"),
-            "serviceType":  "1",
-            "scrambled":    "false" if ch.get("encryption", "FTA") == "FTA" else "true",
-            "satellite":    sat,
-        })
-
-    broadcast_json = json.dumps({"channelList": ch_list}, ensure_ascii=False)
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    xml_str = (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<LGSmartTVDatabase>\n'
-        '  <TVSetup>\n'
-        f'    <ModelName>{tv_model}</ModelName>\n'
-        f'    <GeneratedBy>RAMBO AI Channel Generator</GeneratedBy>\n'
-        f'    <GenerationDate>{now}</GenerationDate>\n'
-        f'    <Satellite>{sat}</Satellite>\n'
-        '  </TVSetup>\n'
-        f'  <legacybroadcast>{broadcast_json}</legacybroadcast>\n'
-        '</LGSmartTVDatabase>'
-    )
-    return xml_str.encode("utf-8")
-
-
-# ══════════════════════════════════════════════════════════
-#  BUILD TXT REPORT
-# ══════════════════════════════════════════════════════════
-def build_txt(result: dict, sat: str, tv_model: str) -> str:
-    st2 = result.get("stats", {})
-    chs = result.get("channels", [])
-    lines = [
-        "=" * 65,
-        "  RAMBO – AI Satellite Channel Report  (Live Web Search)",
-        f"  Satellite : {sat}",
-        f"  TV Model  : {tv_model}",
-        f"  Scan Date : {result.get('scan_date', datetime.now().strftime('%Y-%m-%d'))}",
-        f"  Summary   : {result.get('summary', '')}",
-        "=" * 65,
-        f"  Total     : {st2.get('total', len(chs))}  |  "
-        f"New: {st2.get('new_channels', 0)}  |  "
-        f"FTA: {st2.get('fta', 0)}  |  "
-        f"Encrypted: {st2.get('encrypted', 0)}",
-        "",
-        f"{'#':<5} {'Channel Name':<32} {'Freq':>7}  Pol  {'Category':<25}  Enc   New?",
-        "-" * 85,
+st.write(f"### {t['search_label']}")
+query = st.text_input("", placeholder=t['search_ph']).strip().upper()
+if query:
+    results = [
+        {t['col_num']: i+1, t['col_name']: c["name"],
+         t['col_cat']: classify(c["name"]), t['col_freq']: c["freq"]}
+        for i, c in enumerate(channels_raw)
+        if query in c["name"].upper()
     ]
-    for i, ch in enumerate(chs, 1):
-        lines.append(
-            f"{i:<5} {ch.get('name',''):<32} {ch.get('frequency',0):>7}  "
-            f"{ch.get('polarization',''):>3}  {ch.get('category',''):25}  "
-            f"{'FTA' if ch.get('encryption')=='FTA' else 'ENC':5} "
-            f"{'YES' if ch.get('is_new') else ''}"
-        )
-    return "\n".join(lines)
-
+    if results:
+        st.table(results)
+    else:
+        st.warning(t['no_results'])
 
 # ══════════════════════════════════════════════════════════
-#  RUN BUTTON
+#  CATEGORY SORT
+# ══════════════════════════════════════════════════════════
+CATS = get_categories()
+if do_sort:
+    st.write("---")
+    st.write(f"### {t['sort_title']}")
+    st.caption(t['sort_tip'])
+    user_order = st.multiselect(t['sort_label'], options=CATS, default=[])
+else:
+    user_order = []
+
+# Build final priority (user picks first, rest appended)
+priority = list(user_order)
+for c in CATS:
+    if c not in priority:
+        priority.append(c)
+
+# Sort channels
+if do_sort:
+    channels_sorted = sorted(channels_raw, key=lambda x: priority.index(classify(x["name"])))
+else:
+    channels_sorted = channels_raw
+
+# ══════════════════════════════════════════════════════════
+#  LIVE PREVIEW
 # ══════════════════════════════════════════════════════════
 st.write("---")
-if st.button(t['run_btn'], use_container_width=True):
-    if not api_key:
-        st.warning(t['no_key'])
+st.write(f"### {t['preview_title']}")
+
+# Stats chips
+total_n = len(channels_sorted)
+new_n   = len(injected)
+freq_n  = len(freq_changes)
+st.markdown(
+    f'<span class="chip">📺 {total_n} {t["channels"]}</span>'
+    f'<span class="chip chip-c">🆕 {new_n} جديدة/New</span>'
+    f'<span class="chip chip-c">🔄 {freq_n} تحديث تردد</span>',
+    unsafe_allow_html=True,
+)
+st.markdown("<br>", unsafe_allow_html=True)
+
+cat_map: dict[str, list] = {}
+for ch in channels_sorted:
+    cat = classify(ch["name"])
+    cat_map.setdefault(cat, []).append(ch["name"])
+
+col_a, col_b = st.columns(2)
+for i, cat in enumerate(priority):
+    if cat not in cat_map:
+        continue
+    names = cat_map[cat]
+    star  = "⭐ " if cat in user_order else ""
+    with (col_a if i % 2 == 0 else col_b):
+        with st.expander(f"{star}{cat}  —  ({len(names)} {t['channels']})"):
+            for name in names:
+                st.markdown(f'<div class="ch-row">📺 {name}</div>', unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════
+#  REPORT TABLES
+# ══════════════════════════════════════════════════════════
+if freq_changes:
+    st.write("---")
+    st.write(f"### {t['freq_title']}")
+    st.table(freq_changes)
+
+if injected:
+    st.write("---")
+    st.write(f"### {t['new_title']}")
+    inj_table = [
+        {"اسم القناة / Name": nc["name"],
+         "التردد / Freq":     f"{nc['frequency']} MHz",
+         "الاستقطاب / Pol":   nc["polarization"],
+         "تاريخ الإضافة":     nc.get("launch", "—"),
+         "المصدر / Source":   nc.get("source", "—")}
+        for nc in injected
+    ]
+    st.table(inj_table)
+
+# ══════════════════════════════════════════════════════════
+#  BUILD FINAL FILES
+# ══════════════════════════════════════════════════════════
+txt_report = f"RAMBO – Smart Channel Editor Report\n"
+txt_report += f"Model: {model_name}\n"
+txt_report += "=" * 60 + "\n"
+if freq_changes:
+    txt_report += "\n[Frequency Updates]\n"
+    for fc in freq_changes:
+        txt_report += (
+            f"  {fc[t['col_name']]:<25} "
+            f"{fc['التردد القديم / Old']:>10} -> {fc['التردد الجديد / New']:<10} "
+            f"| {fc['تاريخ التحديث']}\n"
+        )
+if injected:
+    txt_report += "\n[New Channels Injected]\n"
+    for nc in injected:
+        txt_report += f"  {nc['name']:<25} {nc['frequency']} MHz  {nc['polarization']}\n"
+txt_report += "\n" + "=" * 60 + "\n\n"
+for idx, ch in enumerate(channels_sorted, 1):
+    txt_report += f"No. {idx:04d} : {ch['name']:<30} | Freq: {ch['freq']}\n"
+
+# Build TLL bytes
+if is_modern:
+    final_list = []
+    for idx, ch in enumerate(channels_sorted, 1):
+        node = ch["raw_node"]
+        node["majorNumber"] = idx
+        final_list.append(node)
+    bd["channelList"] = final_list
+    lb_tag.text = json.dumps(bd, ensure_ascii=False)
+    final_bytes = ET.tostring(root, encoding="utf-8")
+else:
+    sorted_items = []
+    for idx, ch in enumerate(channels_sorted, 1):
+        s = ch["raw_str"]
+        if "<prNum>" in s:
+            s = re.sub(r'<prNum>\d+</prNum>', f'<prNum>{idx}</prNum>', s)
+        else:
+            s = s.replace("<ITEM>", f"<ITEM>\r\n<prNum>{idx}</prNum>")
+        sorted_items.append(s)
+
+    combined = "\r\n".join(sorted_items)
+    si = file_text.find("<ITEM>")
+    ei = file_text.rfind("</ITEM>") + len("</ITEM>")
+    if si != -1 and ei != -1:
+        final_text = file_text[:si] + combined + file_text[ei:]
     else:
-        with st.spinner(t['spinner']):
-            try:
-                result = search_channels_ai(api_key, sat_name, country)
-                st.session_state.ai_result = result
-                st.session_state.ai_sat    = sat_name
-                st.session_state.ai_model  = tv_model
-            except requests.HTTPError as e:
-                st.error(f"{t['err']}{e.response.status_code} – {e.response.text[:300]}")
-            except Exception as e:
-                st.error(f"{t['err']}{e}")
+        final_text = combined
+
+    try:
+        final_bytes = final_text.encode('utf-8')
+    except UnicodeEncodeError:
+        final_bytes = final_text.encode('latin-1')
 
 # ══════════════════════════════════════════════════════════
-#  DISPLAY RESULTS
+#  DOWNLOAD BUTTONS
 # ══════════════════════════════════════════════════════════
-if st.session_state.ai_result:
-    result   = st.session_state.ai_result
-    sat_used = st.session_state.ai_sat   or sat_name
-    mod_used = st.session_state.ai_model or tv_model
-    channels = result.get("channels", [])
-    stats    = result.get("stats", {})
-    total    = stats.get("total", len(channels))
-    new_n    = stats.get("new_channels", sum(1 for c in channels if c.get("is_new")))
-    fta_n    = stats.get("fta", sum(1 for c in channels if c.get("encryption") == "FTA"))
-    enc_n    = stats.get("encrypted", sum(1 for c in channels if c.get("encryption") != "FTA"))
+st.write("---")
+st.success(t['ready'])
 
-    st.write("---")
-    st.markdown(f"### {t['result_title']}")
-    st.markdown(f"<p>{result.get('summary', '')}</p>", unsafe_allow_html=True)
-
-    # ── Stats bar ────────────────────────────────────────
-    st.markdown(
-        f'<div class="box">'
-        f'<span class="chip">📺 {total} {t["channels"]}</span>'
-        f'<span class="chip chip-cyan">🆕 {new_n} {t["new_lbl"]}</span>'
-        f'<span class="chip">🔓 {fta_n} {t["fta_lbl"]}</span>'
-        f'<span class="chip">🔒 {enc_n} {t["enc_lbl"]}</span>'
-        f'<span class="chip chip-cyan">📡 {sat_used}</span>'
-        f'</div>',
-        unsafe_allow_html=True,
+db1, db2 = st.columns(2)
+with db1:
+    st.download_button(
+        label=t['dl_tll'],
+        data=final_bytes,
+        file_name="GlobalClone00001.TLL",
+        mime="application/octet-stream",
+        use_container_width=True,
     )
-
-    # ── Channels by category ─────────────────────────────
-    cat_map: dict[str, list] = {}
-    for ch in channels:
-        cat_map.setdefault(ch.get("category", "General"), []).append(ch)
-
-    cola, colb = st.columns(2)
-    for i, (cat, chs) in enumerate(cat_map.items()):
-        new_in = sum(1 for c in chs if c.get("is_new"))
-        badge  = f" 🆕×{new_in}" if new_in else ""
-        with (cola if i % 2 == 0 else colb):
-            with st.expander(f"{cat}  ({len(chs)} {t['channels']}){badge}"):
-                for ch in chs:
-                    enc_ic  = "🔒" if ch.get("encryption","FTA") != "FTA" else "🔓"
-                    new_tag = '<span class="new-badge">NEW</span>' if ch.get("is_new") else ""
-                    st.markdown(
-                        f'<div class="ch-row">'
-                        f'{enc_ic} <b>{ch.get("name","")}</b>{new_tag}'
-                        f'&nbsp;|&nbsp; {ch.get("frequency","")} MHz'
-                        f'&nbsp; {ch.get("polarization","")}'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-
-    # ── New channels spotlight ────────────────────────────
-    new_chs = [c for c in channels if c.get("is_new")]
-    if new_chs:
-        st.write("---")
-        st.markdown(f"### {t['new_title']}")
-        cols3 = st.columns(3)
-        for i, ch in enumerate(new_chs):
-            with cols3[i % 3]:
-                st.markdown(
-                    f'<div class="box" style="border-color:#ff007f;">'
-                    f'<b>🆕 {ch.get("name","")}</b><br>'
-                    f'📡 {ch.get("frequency","")} MHz &nbsp; {ch.get("polarization","")}<br>'
-                    f'📂 {ch.get("category","")}&nbsp;&nbsp;'
-                    f'{"🔓 FTA" if ch.get("encryption","FTA")=="FTA" else "🔒 Encrypted"}'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-
-    # ── Download ──────────────────────────────────────────
-    st.write("---")
-    st.success(t['ready'])
-
-    tll_bytes  = build_tll(channels, mod_used, sat_used)
-    txt_report = build_txt(result, sat_used, mod_used)
-
-    d1, d2 = st.columns(2)
-    with d1:
-        st.download_button(
-            label=t['dl_tll'],
-            data=tll_bytes,
-            file_name="GlobalClone00001.TLL",
-            mime="application/octet-stream",
-            use_container_width=True,
-        )
-    with d2:
-        st.download_button(
-            label=t['dl_txt'],
-            data=txt_report,
-            file_name="Channels_List.txt",
-            mime="text/plain; charset=utf-8",
-            use_container_width=True,
-        )
+with db2:
+    st.download_button(
+        label=t['dl_txt'],
+        data=txt_report,
+        file_name="Channels_List.txt",
+        mime="text/plain; charset=utf-8",
+        use_container_width=True,
+    )
 
 # ══════════════════════════════════════════════════════════
 #  FOOTER
 # ══════════════════════════════════════════════════════════
-wa = "https://api.whatsapp.com/send?phone=201280339779&text=Hello%20RAMBO%20Dev"
+wa = "https://api.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Rambo"
 st.markdown(f"""
-<div style="background:#080314;border:2px solid #00f0ff;color:#fff;padding:28px;
-            text-align:center;border-radius:20px;margin-top:60px;font-family:'Orbitron',sans-serif;">
-  <div style="color:#ff007f;font-size:22px;font-weight:bold;">🛠️ DEVELOPER ENG: RAFIK NATHAN</div>
-  <div style="margin-top:8px;">📱 +201280339779 &nbsp;|&nbsp; ✉️ rafikrambo113@gmail.com</div>
-  <a href="{wa}" target="_blank"
-     style="color:#25d366;padding:10px 28px;border-radius:30px;display:inline-block;
-            font-weight:bold;border:2px solid #25d366;text-decoration:none;margin-top:16px;">
-    💬 WhatsApp
-  </a>
+<div class="futuristic-cyber-footer">
+  <div class="footer-dev">🛠️ DEVELOPER ENG: RAFIK NATHAN</div>
+  <div class="footer-item">📱 <b>MOBILE:</b> +201280339779</div>
+  <div class="footer-item">✉️ <b>E-MAIL:</b> rafikrambo113@gmail.com</div>
+  <a href="{wa}" target="_blank" class="cyber-whatsapp-btn">💬 WhatsApp</a>
 </div>
 """, unsafe_allow_html=True)
