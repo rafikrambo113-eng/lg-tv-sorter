@@ -47,7 +47,7 @@ UI_TEXT = {
         'txt_header': "📄 تقرير الترتيب وتحديثات الترددات النهائي لشاشة LG",
         'txt_order': "🛠️ ترتيب الفئات المختار: ",
         'lg_trick_title': "💡 ملحوظة فنية هامة جداً بعد تنزيل الملف على شاشة LG:",
-        'lg_trick_text': "في بعض الحالات، بعد تنزيل ملف القنوات على الشاشة، قد تشعر أن القنوات ليست منظمة كما رتبتها. لحل هذا الأمر فوراً واجبار الشاشة على تفعيل الترتيب الصحيح، قم بالآتي:\n1. من إعدادات التلفزيون اختار **القنوات (Channels)**.\n2. بعد ذلك اختار **مدير القنوات (Channel Manager)**.\n3. اختار **التعديل على كل القنوات (Edit All Channels)**.\n4. ستظهر لك القنوات المرتبة ويكون بعضها في وضع مخفي، قم **بتحديد كل القنوات** واختار **استعادة (Restore)**.\n*ملحوظة: تفعل هذه الخطوة فقط إذا شعرت أن الملف بعد التنزيل غير مرتب كما حددته على الموقع.*"
+        'lg_trick_text': "في بعض الحالات, بعد تنزيل ملف القنوات على الشاشة, قد تشعر أن القنوات ليست منظمة كما رتبتها. لحل هذا الأمر فوراً واجبار الشاشة على تفعيل الترتيب الصحيح, قم بالآتي:\n1. من إعدادات التلفزيون اختار **القنوات (Channels)**.\n2. بعد ذلك اختار **مدير القنوات (Channel Manager)**.\n3. اختار **التعديل على كل القنوات (Edit All Channels)**.\n4. ستظهر لك القنوات المرتبة ويكون بعضها في وضع مخفي, قم **بتحديد كل القنوات** واختار **استعادة (Restore)**.\n*ملحوظة: تفعل هذه الخطوة فقط إذا شعرت أن الملف بعد التنزيل غير مرتب كما حددته على الموقع.*"
     },
     'en': {
         'title': "📺 RAMBO - LG Universal AI Channel Sorter & Generator",
@@ -231,13 +231,22 @@ else:
         
         st.success(f"{t['success_gen']} **{gen_country}** ({model_name_display})")
         
-        # تجميع قنوات التوليد من قاعدة البيانات والقنوات الحصرية مباشرة لبناء المصفوفة
+        # 📊 تجميع قنوات التوليد وضمان تغطية الـ 8 فئات (Categories) كاملة بالملي
         raw_base_list = []
+        
+        # 1. إضافة القنوات الحية من قاعدة البيانات
         for ch_name, data in NILESAT_LIVE_DB.items():
             raw_base_list.append({"name": ch_name, "freq": str(data["frequency"]), "pol": data["polarization"]})
+            
+        # 2. إضافة القنوات الجديدة الحصرية
         for nch in NILESAT_NEW_CHANNELS:
             raw_base_list.append({"name": nch["name"], "freq": str(nch["frequency"]), "pol": nch["polarization"]})
-            injected_report.append({"اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]})
+            if {"اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]} not in injected_report:
+                injected_report.append({"اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]})
+                
+        # 3. حقن قنوات تضمن تنشيط الفئات الغائبة (الدراما والأخبار) ليكون الإجمالي 8 فئات كاملة
+        raw_base_list.append({"name": "MBC DRAMA", "freq": "11938", "pol": "Vertical"})
+        raw_base_list.append({"name": "AL JAZEERA HD", "freq": "10971", "pol": "Vertical"})
             
         for idx, ch in enumerate(raw_base_list):
             if is_modern:
@@ -367,7 +376,7 @@ if file_processed:
             legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
             file_bytes_out = ET.tostring(root, encoding="utf-8")
         else:
-            # صب مصفوفة الـ JSON والأكواد الهيكلية لبلد البث (مصر شمال أفريقيا كمثال افتراضي) بالملي من الصفر
+            # صب مصفوفة الـ JSON والأكواد الهيكلية لبلد البث بالملي من الصفر
             built_root = ET.Element("CHANNELS")
             built_model = ET.SubElement(built_root, "ModelName")
             built_model.text = model_name_display
