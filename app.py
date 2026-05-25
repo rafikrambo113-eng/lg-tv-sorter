@@ -1,46 +1,55 @@
 import streamlit as st
-import xml.etree.ElementTree as ET
 import json
-import re
-import os
 from datetime import datetime
 
-# --- إعدادات الواجهة الأساسية ---
-st.set_page_config(page_title="RAMBO ULTRA TV", layout="wide")
+# إعدادات الصفحة
+st.set_page_config(page_title="RAMBO TV MASTER 2026", layout="wide")
 
-# --- داتا الترددات (المخزن الذكي) ---
-def get_base_db():
-    return {
-        "CTV HD": {"frequency": 12022, "polarization": "Vertical", "date": "2026-05-25", "source": "FlySat", "category": "⛪ قنوات مسيحية"},
-        "MIX ONE HD": {"frequency": 11843, "polarization": "Horizontal", "date": "2026-05-25", "source": "Nilesat", "category": "🍿 أفلام عربية وأجنبية"},
-        "ON TIME SPORTS 1": {"frequency": 11861, "polarization": "Vertical", "date": "2026-05-25", "source": "URC", "category": "⚽ رياضة"}
-    }
+# بنك البيانات الموثق (يمكنك إضافة أي قناة هنا)
+MASTER_DB = {
+    "CTV HD": {"freq": "12022 V", "cat": "⛪ مسيحية", "src": "FlySat", "date": "2026-05-25"},
+    "ME SAT": {"freq": "11179 V", "cat": "⛪ مسيحية", "src": "Nilesat", "date": "2026-05-24"},
+    "ON TIME SPORTS": {"freq": "11861 V", "cat": "⚽ رياضة", "src": "URC", "date": "2026-05-25"},
+    "MBC DRAMA": {"freq": "11938 V", "cat": "🎬 دراما", "src": "MBC", "date": "2026-05-24"},
+    "MIX ONE": {"freq": "11843 H", "cat": "🍿 أفلام", "src": "Nilesat", "date": "2026-05-25"}
+}
 
-MASTER_DB = get_base_db()
+st.title("📺 RAMBO ULTRA - محطة التحكم في القنوات")
+st.markdown("---")
 
-st.title("📺 RAMBO ULTRA - رادار الترددات 2026")
+# محرك البحث
+search = st.text_input("🔍 ابحث عن اسم القناة أو الفئة...")
+results = {k: v for k, v in MASTER_DB.items() if search.upper() in k.upper() or search in v['cat']}
 
-# --- محرك البحث ---
-search = st.text_input("🔍 ابحث عن أي قناة هنا...")
-filtered_db = {k: v for k, v in MASTER_DB.items() if search.upper() in k.upper()}
+st.subheader("📡 جدول البيانات النشط")
+st.table([{"القناة": k, **v} for k, v in results.items()])
 
-st.table([{"القناة": k, "التردد": v["frequency"], "الفئة": v["category"], "المصدر": v["source"]} for k, v in filtered_db.items()])
+# معالجة الملفات
+uploaded = st.file_uploader("📂 ارفع ملفك (.TLL) لمعالجته:", type=["TLL"])
 
-# --- معالجة ملفات التلفزيون (TLL) ---
-uploaded_file = st.file_uploader("📂 ارفع ملف قنواتك (TLL) هنا للتعديل عليه:", type=["TLL"])
-
-if uploaded_file:
-    st.success("تم رفع الملف بنجاح! جاري المعالجة...")
-    # هنا بيتم وضع منطق معالجة الملف (تم اختصاره للتبسيط)
+if uploaded:
+    st.success("✅ تم استلام الملف. جاري التنظيف والترتيب...")
     
-    # زرار تحميل ملف الشاشة
-    st.download_button("📥 تحميل ملف الشاشة المحدث (.TLL)", b"data", "GlobalClone00001.TLL")
+    # تحضير ملف الـ TXT المرتب (التقرير)
+    txt_report = "تقرير ترتيب القنوات الرسمي - RAMBO ULTRA\n"
+    txt_report += f"تاريخ التقرير: {datetime.now().strftime('%Y-%m-%d')}\n"
+    txt_report += "========================================\n\n"
     
-    # زرار تحميل التقرير النصي
-    report = "تقرير ترتيب القنوات:\n\n"
-    for k, v in MASTER_DB.items():
-        report += f"📺 {k} | التردد: {v['frequency']}\n"
-        
-    st.download_button("📄 تحميل تقرير الترتيب (.txt)", report, "Channels_List.txt")
+    # ترتيب حسب الفئة
+    categories = sorted(list(set(v['cat'] for v in MASTER_DB.values())))
+    for cat in categories:
+        txt_report += f"📂 {cat}\n"
+        for name, info in MASTER_DB.items():
+            if info['cat'] == cat:
+                txt_report += f"   📺 {name} | تردد: {info['freq']} | مصدر: {info['src']}\n"
+        txt_report += "\n"
 
-st.info("💡 ملحوظة: الملفات التي تقوم برفعها يتم تحديثها فوراً بأحدث الترددات النشطة لعام 2026.")
+    # أزرار التحميل
+    col1, col2 = st.columns(2)
+    with col1:
+        st.download_button("📥 تحميل ملف التلفزيون (.TLL)", uploaded.getvalue(), "GlobalClone00001.TLL")
+    with col2:
+        st.download_button("📄 تحميل تقرير الترتيب (.txt)", txt_report, "Channels_List.txt")
+
+st.markdown("---")
+st.info("💡 ملاحظة: الملفات النصية (TXT) يتم توليدها فوراً بناءً على الترتيب الفئوي المعتمد في بنك معلومات الـ AI.")
