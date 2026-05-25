@@ -145,7 +145,7 @@ st.markdown(f"""
 st.title(t['title'])
 st.markdown(f"<h3>{t['subtitle']}</h3>", unsafe_allow_html=True)
 
-# 🌐 رادار الـ AI الذكي المحدث كلياً لقراءة السيرفر المباشر بالكامل بدقة متناهية
+# 🌐 رادار الـ AI الذكي المطور لقراءة السيرفر ودعم تردد باقة الحياة 11392 V
 @st.cache_data(ttl=3600)
 def fetch_live_nilesat_pure():
     live_scraped_channels = {}
@@ -154,8 +154,6 @@ def fetch_live_nilesat_pure():
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=10) as response:
             html = response.read().decode('utf-8')
-            
-            # نمط متقدم جداً لمسح كافة جداول الترددات والقنوات والتقاط الأسماء المخفية
             blocks = re.findall(r'(\d{5})\s+([HV]).*?<td>(.*?)</td>', html, re.DOTALL)
             for block in blocks:
                 freq, pol, content = block
@@ -171,22 +169,23 @@ def fetch_live_nilesat_pure():
     except Exception:
         pass
 
-    # 🔥 مصفوفة التغذية العملاقة لملء الأقسام أوتوماتيكياً بمئات القنوات في حالة نقص بيانات السيرفر
+    # 🔥 مصفوفة التغذية العملاقة مضاف إليها قنوات باقة الحياة والشفاء والملكوت على تردد 11392 عمودي
     backup_db = {
-        # 🕌 قنوات إسلامية (توسيع شامل لكافة قنوات القرآن والسنة والحديث)
+        # ⛪ باقة القنوات المسيحية كاملة (تردد 11392 V وترددات البث الساخن)
+        "ALHAYAT TV": 11392, "THE LIFE TV": 11392, "HAYAT TV": 11392, "AL SHIFA TV": 11392, "AL MALAKOOT": 11392, 
+        "AL MOFADY TV": 11392, "CTV HD": 12022, "AGHAPY TV": 11179, "ME SAT": 11179, "MARMARKOS": 11137, 
+        "KOOGI TV": 11096, "SAT-7 KIDS": 11353, "SAT-7 ARABIC": 11353, "ALKARMA ME 1": 11096, "ALKARMA FE": 11096, 
+        "NOURSAT": 11179, "CYC TV": 11137, "LOGO TV": 11096, "SAMA TV": 11179, "BETHEL TV": 11137, 
+        "HEAVEN TV": 11179, "HOPE TV ARABIC": 11353, "MIRACLE TV": 11096, "HOLY TV": 11137, "GOOD NEWS TV": 12022, 
+        "LIGHT TV": 11179, "TRUTH TV": 11353,
+        
+        # 🕌 قنوات إسلامية
         "SAUDI QURAN HD": 12149, "AL MAJD QURAN": 12054, "EGYPT QURAN": 11179, "AL SUNNAH HD": 12149, "AL RAHMA TV": 10873,
         "MAJD QURAN": 12054, "MAJD HADITH": 12054, "ALAFASY TV": 10727, "AL MAJD": 11900, "MEKKA TV": 12399, "MEDINA TV": 12149,
         "ZAD TV": 12226, "AL INSAAN": 11658, "DAWAH TV": 10758, "SHAREQAH QURAN": 11012, "NOUR AL QURAN": 11411, "IQRAA": 12034,
         "IQRAA HD": 12034, "RISALAH": 11296, "AL NAS": 12054, "FATH TV": 10853, "MAJD SPACE": 12054, "AL RAHMA": 10873,
         
-        # ⛪ قنوات مسيحية (الباقة الـ 23 كاملة بأقوى تردداتها)
-        "CTV HD": 12022, "AGHAPY TV": 11179, "ME SAT": 11179, "MARMARKOS": 11137, "KOOGI TV": 11096, 
-        "SAT-7 KIDS": 11353, "SAT-7 ARABIC": 11353, "ALKARMA ME 1": 11096, "ALKARMA FE": 11096, 
-        "NOURSAT": 11179, "CYC TV": 11137, "LOGO TV": 11096, "SAMA TV": 11179, "AL MALAKOOT": 11137, 
-        "AL SHIFA TV": 11096, "BETHEL TV": 11137, "HEAVEN TV": 11179, "HOPE TV ARABIC": 11353, 
-        "MIRACLE TV": 11096, "HOLY TV": 11137, "GOOD NEWS TV": 12022, "LIGHT TV": 11179, "TRUTH TV": 11353,
-        
-        # 🎬 مسلسلات ودراما (ضخ شامل)
+        # 🎬 مسلسلات ودراما
         "MBC DRAMA": 11938, "DMC DRAMA": 12092, "CBC DRAMA": 11785, "PANORAMA DRAMA": 12341, "ON DRAMA": 11861,
         "AL HAYAT DRAMA": 12207, "AL NAHAR DRAMA": 11785, "SADA EL BALAD DRAMA": 11823, "ZEE ALWAN": 11277, "B4U FX": 11938,
         "ART HEKAYAT 1": 12034, "ART HEKAYAT 2": 12034, "MIX DRAMA": 11843, "TIME DRAMA": 11179, "AL DOCH": 11595,
@@ -220,7 +219,8 @@ def fetch_live_nilesat_pure():
     
     for k, v in backup_db.items():
         if k.upper() not in live_scraped_channels:
-            live_scraped_channels[k.upper()] = {"frequency": v, "polarization": "Vertical" if v in [12022, 11137, 11938, 11785, 11861, 12207, 12015, 12092, 10971, 12169, 11747, 12034, 11430, 11315] else "Horizontal", "update_date": "Live-AI Enhanced"}
+            # تخصيص الاستقطاب العمودي لتردد 11392 وباقي الترددات المثيلة
+            live_scraped_channels[k.upper()] = {"frequency": v, "polarization": "Vertical" if v in [11392, 12022, 11137, 11938, 11785, 11861, 12207, 12015, 12092, 10971, 12169, 11747, 12034, 11430, 11315] else "Horizontal", "update_date": "Live-AI Enhanced"}
             
     return live_scraped_channels
 
@@ -241,11 +241,11 @@ ALL_AVAILABLE_CATEGORIES = [
 
 def ai_classify(channel_name):
     name = channel_name.upper()
-    # ⛪ قنوات مسيحية
-    if any(w in name for w in ["CTV", "AGHAPY", "ME SAT", "MESAT", "MARMARKOS", "KOOGI", "SAT-7", "SAT7", "KARMA", "NOURSAT", "CYC", "LOGO TV", "SAMA", "MALAKOOT", "SHIFA", "BETHEL", "HEAVEN", "HOPE", "MIRACLE", "HOLY", "GOOD NEWS", "LIGHT TV", "TRUTH"]): return ALL_AVAILABLE_CATEGORIES[0]
-    # 🕌 قنوات إسلامية (توسيع شبكة الفرز لضمان لقط كافة قنوات المجد والقرآن)
+    # ⛪ قنوات مسيحية (تم ربط الكلمات الدلالية لقنوات الحياة والشفاء والملكوت بالباقة المسيحية فوراً)
+    if any(w in name for w in ["CTV", "AGHAPY", "ME SAT", "MESAT", "MARMARKOS", "KOOGI", "SAT-7", "SAT7", "KARMA", "NOURSAT", "CYC", "LOGO TV", "SAMA", "MALAKOOT", "SHIFA", "BETHEL", "HEAVEN", "HOPE", "MIRACLE", "HOLY", "GOOD NEWS", "LIGHT TV", "TRUTH", "HAYAT TV", "LIFE TV", "MOFADY"]): return ALL_AVAILABLE_CATEGORIES[0]
+    # 🕌 قنوات إسلامية
     if any(w in name for w in ["QURAN", "RAHMA", "MAJD", "MAKKA", "SUNNA", "NAS TV", "ZAD", "ISLAM", "AFASY", "MEDINA", "IQRA", "IQRAA", "RISALAH", "NAS", "FATH", "DAWAH", "INSAAN", "SHAREQAH"]): return ALL_AVAILABLE_CATEGORIES[1]
-    # 🎬 مسلسلات ودراما
+    # 🎬 مسلسلات ودراما (استثناء قنوات الحياة المسيحية من باقة الدراما العامة لضمان الفرز)
     if any(w in name for w in ["MOSALSALAT", "DRAMA", "SERIES", "KHOLASA", "HEKAYAT", "ALWAN", "DOCH", "TIME DR"]): return ALL_AVAILABLE_CATEGORIES[2]
     # 🍿 أفلام عربية وأجنبية
     if any(w in name for w in ["CINEMA", "ROTANA", "AFLAM", "MIX", "FOX", "MBC2", "MBC 2", "ACTION", "RAMBO", "MISHMISH", "MOVIE", "MAX", "SCARE", "CIMA", "TOP MOV", "B4U MO", "SCIFI", "BLUE"]): return ALL_AVAILABLE_CATEGORIES[3]
