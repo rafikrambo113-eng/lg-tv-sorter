@@ -9,15 +9,26 @@ if 'lang' not in st.session_state:
 if 'theme' not in st.session_state:
     st.session_state.theme = 'dark'
 
-# قاموس اللغتين لترجمة واجهة المستخدم السيبرانية
+# قاموس اللغتين لترجمة واجهة المستخدم السيبرانية بالكامل
 UI_TEXT = {
     'ar': {
         'title': "📺 RAMBO - المنسق العالمي لشاشات LG",
-        'subtitle': "⚡ هندسة متطورة لترتيب ملفات القنوات بالذكاء الاصطناعي (AI)",
+        'subtitle': "⚡ هندسة متطورة لترتيب وتوليد ملفات القنوات بالذكاء الاصطناعي (AI)",
+        'mode_selector': "🛠️ اختر وضع العمل المطلوب للبرنامج:",
+        'mode_edit': "🛸 تعديل ملف قنوات مرفوع من الفلاشة",
+        'mode_gen': "⚛️ توليد ملف قنوات جديد تماماً من الصفر",
+        'model_label': "📺 اختر نوع موديل شاشة LG المستهدفة:",
+        'model_modern': "Smart webOS (شاشات سمارت حديثة)",
+        'model_legacy': "Legacy / 32 Inch (الشاشات الكلاسيكية والـ 32 بوصة)",
+        'country_label': "🌍 اختر بلد البث (Broadcast Country):",
+        'country_egy': "مصر (Egypt) — تصنيف شمال أفريقيا [NAFR]",
+        'country_ksa': "السعودية (KSA) — تصنيف الشرق الأوسط [MIDE]",
+        'btn_generate': "🚀 إطلاق مصفوفة التوليد السريع للملف الجديد",
         'upload_label': "🚀 اختر ملف القنوات (GlobalClone00001.TLL) من الفلاشة:",
         'update_freq_label': "⚛️ تفعيل الصيانة الذكية وتحديث الترددات تلقائياً (حسب القمر المكتشف)",
         'add_new_ch_label': "✨ فحص وزرع القنوات الجديدة المتاحة تلقائياً في القمر الصناعي المكتشف",
         'success_read': "🛸 تم قراءة الهيكل بنجاح! الموديل الحالي: ",
+        'success_gen': "🌌 تم توليد هيكل ملف قنوات LG جديد كلياً متوافق مع نطاق بث: ",
         'search_header': "🔍 محرك البحث الذكي عن القنوات داخل الملف:",
         'search_placeholder': "اكتب اسم القناة هنا للبحث...",
         'search_col_num': "الرقم الحالي",
@@ -39,12 +50,23 @@ UI_TEXT = {
         'lg_trick_text': "في بعض الحالات، بعد تنزيل ملف القنوات على الشاشة، قد تشعر أن القنوات ليست منظمة كما رتبتها. لحل هذا الأمر فوراً واجبار الشاشة على تفعيل الترتيب الصحيح، قم بالآتي:\n1. من إعدادات التلفزيون اختار **القنوات (Channels)**.\n2. بعد ذلك اختار **مدير القنوات (Channel Manager)**.\n3. اختار **التعديل على كل القنوات (Edit All Channels)**.\n4. ستظهر لك القنوات المرتبة ويكون بعضها في وضع مخفي، قم **بتحديد كل القنوات** واختار **استعادة (Restore)**.\n*ملحوظة: تفعل هذه الخطوة فقط إذا شعرت أن الملف بعد التنزيل غير مرتب كما حددته على الموقع.*"
     },
     'en': {
-        'title': "📺 RAMBO - LG Universal AI Channel Sorter",
-        'subtitle': "⚡ Next-Gen Cyber-Engineered Architecture for 3D Channel Layouts",
+        'title': "📺 RAMBO - LG Universal AI Channel Sorter & Generator",
+        'subtitle': "⚡ Next-Gen Cyber-Engineered Architecture for AI Layout Tuning",
+        'mode_selector': "🛠️ Select Desired Operations Mode:",
+        'mode_edit': "🛸 Edit/Optimize Existing USB .TLL File",
+        'mode_gen': "⚛️ Generate Brand New Raw .TLL File from Scratch",
+        'model_label': "📺 Select Target LG TV Model Type:",
+        'model_modern': "Smart webOS (Modern Smart Models)",
+        'model_legacy': "Legacy / 32 Inch (Classic & 32\" Screen Profile)",
+        'country_label': "🌍 Select Broadcast Country Profile:",
+        'country_egy': "Egypt — North Africa Grouping [NAFR]",
+        'country_ksa': "Saudi Arabia (KSA) — Middle East Grouping [MIDE]",
+        'btn_generate': "🚀 Fire Matrix Generation Engine",
         'upload_label': "🚀 Upload Channel File (GlobalClone00001.TLL) from USB Flash:",
         'update_freq_label': "⚛️ Activate Satellite Live Frequency Auto-Update (AI Auto-Detect)",
         'add_new_ch_label': "✨ Scan & Inject New Satellite Channels Automatically based on Sat Detection",
         'success_read': "🛸 Matrix Structure Decoded Successfully! Model Profile: ",
+        'success_gen': "🌌 Created brand new native LG channel structure compatible with broadcast sector: ",
         'search_header': "🔍 Dynamic Channel Search Engine:",
         'search_placeholder': "Type channel name to look up...",
         'search_col_num': "No.",
@@ -109,9 +131,9 @@ st.markdown(f"""
     h1 {{ color: #ff007f !important; text-shadow: 0 0 10px #ff007f, 0 0 25px rgba(255, 0, 127, 0.4) !important; text-align: center; font-weight: 900; margin-top: 5px; }}
     h3, p, label, .stMarkdown, .stInfo, div[data-testid="stMarkdownContainer"] p {{ color: {text_color} !important; text-shadow: {text_shadow_glow}; }}
     .stTextInput>div>div>input {{ background-color: {box_bg} !important; color: {text_color} !important; border: 2px solid {box_border} !important; border-radius: 10px !important; }}
-    .stCheckbox, .stMultiSelect, div[data-testid="stExpander"], div[data-testid="stFileUploader"], .lg-trick-box {{ background: {box_bg} !important; border: 2px solid {box_border} !important; box-shadow: 0px 5px 15px {box_shadow} !important; border-radius: 14px !important; padding: 18px !important; margin-bottom: 20px !important; }}
+    .stCheckbox, .stMultiSelect, div[data-testid="stExpander"], div[data-testid="stFileUploader"], .lg-trick-box, .cyber-sidebar-box {{ background: {box_bg} !important; border: 2px solid {box_border} !important; box-shadow: 0px 5px 15px {box_shadow} !important; border-radius: 14px !important; padding: 18px !important; margin-bottom: 20px !important; }}
     .lg-trick-box {{ border-color: #ff007f !important; box-shadow: 0px 5px 15px rgba(255, 0, 127, 0.25) !important; }}
-    .stButton>button {{ background: linear-gradient(135deg, #ff007f 0%, #aa0055 100%) !important; color: #ffffff !important; border: 2px solid #ff007f !important; border-radius: 12px !important; font-weight: bold; }}
+    .stButton>button {{ background: linear-gradient(135deg, #ff007f 0%, #aa0055 100%) !important; color: #ffffff !important; border: 2px solid #ff007f !important; border-radius: 12px !important; font-weight: bold; width: 100%; }}
     .futuristic-cyber-footer {{ background: {footer_bg}; border: 2px solid #00f0ff; color: {footer_text} !important; padding: 35px; text-align: center; border-radius: 20px; margin-top: 65px; font-family: 'Orbitron', sans-serif; }}
     .footer-dev {{ color: #ff007f; font-size: 26px; font-weight: bold; }}
     .cyber-whatsapp-btn {{ color: #25d366 !important; padding: 14px 35px; border-radius: 35px; display: inline-block; font-weight: bold; border: 2px solid #25d366; text-decoration: none; margin-top: 20px; }}
@@ -121,7 +143,7 @@ st.markdown(f"""
 st.title(t['title'])
 st.markdown(f"<h3>{t['subtitle']}</h3>", unsafe_allow_html=True)
 
-# 🛰️ قاعدة البيانات السحابية للترددات المرجعية الحية لقمر نايل سات وتواريخ التعديل الرسمية
+# 🛰️ قاعدة البيانات المرجعية للنايل سات لعام 2026 (تستخدم كمصدر رئيسي للترتيب والتوليد)
 NILESAT_LIVE_DB = {
     "AL HAYAT": {"frequency": 12207, "polarization": "Vertical", "update_date": "2026-05-10"},
     "SAT-7 KIDS": {"frequency": 11353, "polarization": "Vertical", "update_date": "2026-04-18"},
@@ -133,7 +155,6 @@ NILESAT_LIVE_DB = {
     "QATAR TV HD": {"frequency": 10834, "polarization": "Horizontal", "update_date": "2026-05-14"}
 }
 
-# 🆕 القنوات الجديدة الحصرية التي سيتم زرعها وحقنها "تبع النايل سات"
 NILESAT_NEW_CHANNELS = [
     {"name": "RAMBO ACTION HD", "frequency": 10834, "polarization": "Horizontal", "launch_date": "2026-01-15", "source": "Nilesat Official"},
     {"name": "MISHMISH CINEMA", "frequency": 11938, "polarization": "Vertical", "launch_date": "2026-04-10", "source": "KingOfSat Database"},
@@ -162,26 +183,74 @@ def ai_classify(channel_name):
     if any(w in name for w in ["NEWS", "JAZEERA", "ARABIYA", "HADATH", "CAIRO"]): return ALL_AVAILABLE_CATEGORIES[6]
     return ALL_AVAILABLE_CATEGORIES[7]
 
-uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
+# 🎛️ بناء الـ Sidebar الجانبي للتحكم في اختيار الوضع المطور
+st.sidebar.markdown(f"### {t['mode_selector']}")
+app_mode = st.sidebar.radio("", [t['mode_edit'], t['mode_gen']])
 
-if uploaded_file is not None:
-    file_bytes = uploaded_file.read()
-    
-    try:
-        file_text_original = file_bytes.decode('utf-8')
-    except UnicodeDecodeError:
-        file_text_original = file_bytes.decode('latin-1')
+# تهيئة المتغيرات الكلية لمعالجة وحفظ البيانات الناتجة
+file_processed = False
+file_bytes_out = b""
+text_report_out = ""
+channels_to_sort = []
+report_changes = []
+injected_report = []
+detected_satellite = "Nilesat 7.0°W"
+model_name_display = ""
 
-    root = ET.fromstring(file_bytes)
-    model_setting = root.find(".//ModelName")
-    model_name = model_setting.text if model_setting is not None else "Unknown LG TV"
-    
-    legacy_broadcast_tag = root.find(".//legacybroadcast")
-    is_modern = legacy_broadcast_tag is not None and legacy_broadcast_tag.text
-    
-    st.info(f"{t['success_read']} **{model_name}**")
+# --- 🟢 الوضع الأول: تعديل ملف مرفوع من الفلاشة ---
+if app_mode == t['mode_edit']:
+    uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
+    if uploaded_file is not None:
+        file_bytes = uploaded_file.read()
+        try: file_text_original = file_bytes.decode('utf-8')
+        except UnicodeDecodeError: file_text_original = file_bytes.decode('latin-1')
 
-    # 💡 صندوق النصيحة الفنية لـ LG المستوحى من خبرة المستخدم
+        root = ET.fromstring(file_bytes)
+        model_setting = root.find(".//ModelName")
+        model_name_display = model_setting.text if model_setting is not None else "Unknown LG TV"
+        legacy_broadcast_tag = root.find(".//legacybroadcast")
+        is_modern = legacy_broadcast_tag is not None and legacy_broadcast_tag.text
+        
+        st.info(f"{t['success_read']} **{model_name_display}**")
+        file_processed = True
+
+# --- 🔵 الوضع الثاني: ميزة توليد ملف جديد بالكامل من الصفر ---
+else:
+    st.markdown(f'<div class="cyber-sidebar-box">', unsafe_allow_html=True)
+    gen_model = st.selectbox(t['model_label'], [t['model_modern'], t['model_legacy']])
+    gen_country = st.selectbox(t['country_label'], [t['country_egy'], t['country_ksa']])
+    fire_gen = st.button(t['btn_generate'])
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    if fire_gen or 'generated_active' in st.session_state:
+        st.session_state.generated_active = True
+        is_modern = (gen_model == t['model_modern'])
+        model_name_display = "LG-webOS-2026-GEN" if is_modern else "LG-Legacy-32-GEN"
+        country_code = "EG" if gen_country == t['country_egy'] else "SA"
+        country_group = "NAFR" if gen_country == t['country_egy'] else "MIDE"
+        
+        st.success(f"{t['success_gen']} **{gen_country}** ({model_name_display})")
+        
+        # تجميع قنوات التوليد من قاعدة البيانات والقنوات الحصرية مباشرة لبناء المصفوفة
+        raw_base_list = []
+        for ch_name, data in NILESAT_LIVE_DB.items():
+            raw_base_list.append({"name": ch_name, "freq": str(data["frequency"]), "pol": data["polarization"]})
+        for nch in NILESAT_NEW_CHANNELS:
+            raw_base_list.append({"name": nch["name"], "freq": str(nch["frequency"]), "pol": nch["polarization"]})
+            injected_report.append({"اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]})
+            
+        for idx, ch in enumerate(raw_base_list):
+            if is_modern:
+                node = {"channelName": ch["name"], "frequency": int(ch["freq"]), "polarization": ch["pol"], "majorNumber": 0, "serviceType": "1", "scrambled": "false", "symbolRate": "27500"}
+                channels_to_sort.append({"id": idx, "name": ch["name"], "freq": ch["freq"], "raw_node": node})
+            else:
+                item_str = f"<ITEM>\r\n<prNum>0</prNum>\r\n<vchName>{ch['name']}</vchName>\r\n<frequency>{ch['freq']}</frequency>\r\n<serviceType>1</serviceType>\r\n</ITEM>"
+                channels_to_sort.append({"id": idx, "name": ch["name"], "freq": ch["freq"], "raw_str": item_str})
+        file_processed = True
+
+# --- 🚀 خط المعالجة الموحد وجدولة مصفوفة الترتيب الفئات والأقمار ---
+if file_processed:
+    # 💡 طباعة دليل معالجة كاش الشاشة المستوحى من خبرة المستخدم الفنية
     st.markdown(f"""
         <div class="lg-trick-box">
             <h4 style="color: #ff007f; margin-top:0;">{t['lg_trick_title']}</h4>
@@ -189,87 +258,49 @@ if uploaded_file is not None:
         </div>
     """, unsafe_allow_html=True)
     
-    col_opt1, col_opt2 = st.columns(2)
-    with col_opt1:
-        update_freq = st.checkbox(t['update_freq_label'], value=True)
-    with col_opt2:
-        add_new_channels = st.checkbox(t['add_new_ch_label'], value=True)
-
-    channels_to_sort = []
-    report_changes = []
-    injected_report = []
-    
-    detected_satellite = "Nilesat 7.0°W"
-    
-    # 1. فحص وتحديث الترددات وحقن القنوات "تبع النايل سات"
-    if is_modern:
-        broadcast_data = json.loads(legacy_broadcast_tag.text)
-        channels_list = broadcast_data.get("channelList", [])
+    # خيارات إضافية للملفات المرفوعة فقط
+    if app_mode == t['mode_edit']:
+        col_opt1, col_opt2 = st.columns(2)
+        with col_opt1: update_freq = st.checkbox(t['update_freq_label'], value=True)
+        with col_opt2: add_new_channels = st.checkbox(t['add_new_ch_label'], value=True)
         
-        if add_new_channels:
-            for nch in NILESAT_NEW_CHANNELS:
-                new_node = {
-                    "channelName": nch["name"], "frequency": nch["frequency"], "polarization": nch["polarization"],
-                    "majorNumber": 0, "serviceType": "1", "scrambled": "false", "symbolRate": "27500"
-                }
-                channels_list.append(new_node)
-                injected_report.append({
-                    "اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]
-                })
-        
-        for idx, ch in enumerate(channels_list):
-            ch_name = ch.get("channelName", "Unknown")
-            old_freq = str(ch.get("frequency", "N/A"))
-            name_up = ch_name.upper()
-            
-            if update_freq and name_up in NILESAT_LIVE_DB:
-                live_freq = str(NILESAT_LIVE_DB[name_up]["frequency"])
-                if old_freq != live_freq:
-                    report_changes.append({
-                        "القناة": ch_name, 
-                        "الفئة (Category)": ai_classify(ch_name), 
-                        "التردد القديم": f"{old_freq} MHz", 
-                        "التردد الجديد": f"{live_freq} MHz",
-                        "تاريخ التحديث": NILESAT_LIVE_DB[name_up]["update_date"]
-                    })
-                    ch["frequency"] = int(live_freq)
-                    ch["polarization"] = NILESAT_LIVE_DB[name_up]["polarization"]
-                    old_freq = live_freq
-                    
-            channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_node": ch})
-    else:
-        # الموديل القديم (32 بوصة)
-        item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text_original, re.DOTALL)
-        
-        for idx, item_str in enumerate(item_blocks):
-            name_match = re.search(r'<vchName>(.*?)</vchName>', item_str)
-            freq_match = re.search(r'<frequency>(.*?)</frequency>', item_str)
-            ch_name = name_match.group(1) if name_match else "Unknown"
-            old_freq = freq_match.group(1) if freq_match else "N/A"
-            name_up = ch_name.upper()
-            
-            if update_freq and name_up in NILESAT_LIVE_DB:
-                live_freq = str(NILESAT_LIVE_DB[name_up]["frequency"])
-                if old_freq != live_freq:
-                    report_changes.append({
-                        "القناة": ch_name, 
-                        "الفئة (Category)": ai_classify(ch_name), 
-                        "التردد القديم": f"{old_freq} MHz", 
-                        "التردد الجديد": f"{live_freq} MHz",
-                        "تاريخ التحديث": NILESAT_LIVE_DB[name_up]["update_date"]
-                    })
-                    item_str = re.sub(r'<frequency>\d+</frequency>', f'<frequency>{live_freq}</frequency>', item_str)
-                    old_freq = live_freq
-                    
-            channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_str": item_str})
-
-        if add_new_channels:
-            for nch in NILESAT_NEW_CHANNELS:
-                new_item_raw = f"<ITEM>\r\n<prNum>0</prNum>\r\n<vchName>{nch['name']}</vchName>\r\n<frequency>{nch['frequency']}</frequency>\r\n<serviceType>1</serviceType>\r\n</ITEM>"
-                channels_to_sort.append({"id": len(channels_to_sort), "name": nch["name"], "freq": str(nch["frequency"]), "raw_str": new_item_raw})
-                injected_report.append({
-                    "اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]
-                })
+        if is_modern:
+            broadcast_data = json.loads(legacy_broadcast_tag.text)
+            channels_list = broadcast_data.get("channelList", [])
+            if add_new_channels:
+                for nch in NILESAT_NEW_CHANNELS:
+                    channels_list.append({"channelName": nch["name"], "frequency": nch["frequency"], "polarization": nch["polarization"], "majorNumber": 0, "serviceType": "1", "scrambled": "false", "symbolRate": "27500"})
+                    injected_report.append({"اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]})
+            for idx, ch in enumerate(channels_list):
+                ch_name = ch.get("channelName", "Unknown")
+                old_freq = str(ch.get("frequency", "N/A"))
+                if update_freq and ch_name.upper() in NILESAT_LIVE_DB:
+                    live_freq = str(NILESAT_LIVE_DB[ch_name.upper()]["frequency"])
+                    if old_freq != live_freq:
+                        report_changes.append({"القناة": ch_name, "الفئة (Category)": ai_classify(ch_name), "التردد القديم": f"{old_freq} MHz", "التردد الجديد": f"{live_freq} MHz", "تاريخ التحديث": NILESAT_LIVE_DB[ch_name.upper()]["update_date"]})
+                        ch["frequency"] = int(live_freq)
+                        ch["polarization"] = NILESAT_LIVE_DB[ch_name.upper()]["polarization"]
+                        old_freq = live_freq
+                channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_node": ch})
+        else:
+            item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text_original, re.DOTALL)
+            for idx, item_str in enumerate(item_blocks):
+                name_match = re.search(r'<vchName>(.*?)</vchName>', item_str)
+                freq_match = re.search(r'<frequency>(.*?)</frequency>', item_str)
+                ch_name = name_match.group(1) if name_match else "Unknown"
+                old_freq = freq_match.group(1) if freq_match else "N/A"
+                if update_freq and ch_name.upper() in NILESAT_LIVE_DB:
+                    live_freq = str(NILESAT_LIVE_DB[ch_name.upper()]["frequency"])
+                    if old_freq != live_freq:
+                        report_changes.append({"القناة": ch_name, "الفئة (Category)": ai_classify(ch_name), "التردد القديم": f"{old_freq} MHz", "التردد الجديد": f"{live_freq} MHz", "تاريخ التحديث": NILESAT_LIVE_DB[ch_name.upper()]["update_date"]})
+                        item_str = re.sub(r'<frequency>\d+</frequency>', f'<frequency>{live_freq}</frequency>', item_str)
+                        old_freq = live_freq
+                channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_str": item_str})
+            if add_new_channels:
+                for nch in NILESAT_NEW_CHANNELS:
+                    new_item_raw = f"<ITEM>\r\n<prNum>0</prNum>\r\n<vchName>{nch['name']}</vchName>\r\n<frequency>{nch['frequency']}</frequency>\r\n<serviceType>1</serviceType>\r\n</ITEM>"
+                    channels_to_sort.append({"id": len(channels_to_sort), "name": nch["name"], "freq": str(nch["frequency"]), "raw_str": new_item_raw})
+                    injected_report.append({"اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]})
 
     # محرك البحث الذكي
     st.write("---")
@@ -278,12 +309,11 @@ if uploaded_file is not None:
     if search_query:
         search_results = []
         for idx, ch in enumerate(channels_to_sort, start=1):
-            if search_query in ch["name"].upper():
-                search_results.append({t['search_col_num']: idx, t['search_col_name']: ch["name"], t['search_col_cat']: ai_classify(ch["name"]), t['search_col_freq']: ch["freq"]})
+            if search_query in ch["name"].upper(): search_results.append({t['search_col_num']: idx, t['search_col_name']: ch["name"], t['search_col_cat']: ai_classify(ch["name"]), t['search_col_freq']: ch["freq"]})
         if search_results: st.table(search_results)
         else: st.warning(t['search_no_results'])
 
-    # مصفوفة الفئات المخصصة
+    # مصفوفة الترتيب واختيار أولويات الفئات
     st.write("---")
     st.write(f"### {t['config_title']}")
     user_priority = st.multiselect(t['multiselect_label'], options=ALL_AVAILABLE_CATEGORIES, default=[])
@@ -291,10 +321,9 @@ if uploaded_file is not None:
     for cat in ALL_AVAILABLE_CATEGORIES:
         if cat not in final_priority: final_priority.append(cat)
 
-    # فرز القنوات الكلي بناءً على الفئة
     channels_sorted = sorted(channels_to_sort, key=lambda x: final_priority.index(ai_classify(x["name"])))
     
-    # المعاينة الحية للفئات
+    # المعاينة الحية للفئات الموزعة
     categorized = {}
     for ch in channels_sorted:
         cat = ai_classify(ch["name"])
@@ -310,82 +339,71 @@ if uploaded_file is not None:
             target_col = col1 if i % 2 == 0 else col2
             with target_col:
                 is_user_chosen = "⭐ " if cat_name in user_priority else ""
-                with st.expander(f"{is_user_chosen}{cat_name} — ({len(ch_list)} {t['channels_count']})"):
-                    st.write(", ".join(ch_list))
+                with st.expander(f"{is_user_chosen}{cat_name} — ({len(ch_list)} {t['channels_count']})"): st.write(", ".join(ch_list))
 
-    # عرض الجداول التفاعلية على الموقع
-    st.write("---")
     if report_changes:
-        st.write(f"### 🔁 سجل صيانة وتحديث الترددات (مضافاً إليها الفئة وتاريخ التحديث) — تبع الـ {detected_satellite}:")
+        st.write(f"### 🔁 سجل صيانة وتحديث الترددات الحية — تبع الـ {detected_satellite}:")
         st.table(report_changes)
-        
     if injected_report:
-        st.write(f"### 🆕 تقرير القنوات الجديدة المزروعة وتاريخ صدورها ومصدرها (مضافاً إليها التردد) — تبع الـ {detected_satellite}:")
+        st.write(f"### 🆕 تقرير القنوات الجديدة المزروعة وتاريخ صدورها ومصدرها — تبع الـ {detected_satellite}:")
         st.table(injected_report)
 
-    # بناء التقارير والملفات النهائية للتحميل
-    text_report = f"{t['txt_header']} ({model_name})\n"
-    text_report += f"🛰️ القمر الصناعي المكتشف بواسطة الـ AI: {detected_satellite}\n"
-    text_report += "==================================================\n"
-    if report_changes:
-        text_report += f"\n🔁 [سجل صيانة وتحديث الترددات مضافاً إليها الفئة وتاريخ التحديث - تبع {detected_satellite}]:\n"
-        for change in report_changes:
-            text_report += f"- القناة: {change['القناة']:<20} | الفئة: {change['الفئة (Category)']:<20} | التردد: {change['التردد القديم']:<10} -> {change['التردد الجديد']:<10} | تاريخ التحديث: {change['تاريخ التحديث']}\n"
-    if injected_report:
-        text_report += f"\n🆕 [تقرير القنوات الجديدة المزروعة مضافاً إليها التردد - تبع {detected_satellite}]:\n"
-        for inch in injected_report:
-            text_report += f"- قناة: {inch['اسم القناة']:<20} | التردد: {inch['التردد']:<10} | تاريخ الصدور: {inch['تاريخ الصدور']:<12} | المصدر: {inch['المصدر']}\n"
-    text_report += "\n==================================================\n\n"
-    
+    # بناء ملف الـ Diagnostic النصي للتحميل
+    text_report_out = f"{t['txt_header']} ({model_name_display})\n🛰️ القمر الصناعي المكتشف بواسطة الـ AI: {detected_satellite}\n"
+    text_report_out += "==================================================\n"
+    for index, ch in enumerate(channels_sorted, start=1):
+        text_report_out += f"No. {index:03d} : {ch['name']:<25} | Freq: {ch['freq']}\n"
+
+    # تصدير وبناء هيكل قنوات الـ TLL النهائي للتحميل
     if is_modern:
         final_list_modern = []
         for index, ch in enumerate(channels_sorted, start=1):
             node = ch["raw_node"]
             node["majorNumber"] = index
             final_list_modern.append(node)
-            text_report += f"No. {index:03d} : {ch['name']:<25} | Freq: {ch['freq']}\n"
-        broadcast_data["channelList"] = final_list_modern
-        legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
-        final_xml_bytes = ET.tostring(root, encoding="utf-8")
-    else:
-        modified_text_output = file_text_original
-        item_strings_sorted = []
         
+        if app_mode == t['mode_edit']:
+            broadcast_data["channelList"] = final_list_modern
+            legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
+            file_bytes_out = ET.tostring(root, encoding="utf-8")
+        else:
+            # صب مصفوفة الـ JSON والأكواد الهيكلية لبلد البث (مصر شمال أفريقيا كمثال افتراضي) بالملي من الصفر
+            built_root = ET.Element("CHANNELS")
+            built_model = ET.SubElement(built_root, "ModelName")
+            built_model.text = model_name_display
+            built_legacy = ET.SubElement(built_root, "legacybroadcast")
+            mock_json = {"countryCode": country_code, "countryGroup": country_group, "bTunedCountry": country_code, "channelList": final_list_modern}
+            built_legacy.text = json.dumps(mock_json, ensure_ascii=False)
+            file_bytes_out = ET.tostring(built_root, encoding="utf-8")
+    else:
+        item_strings_sorted = []
         for index, ch in enumerate(channels_sorted, start=1):
             original_item_str = ch["raw_str"]
-            if "<prNum>" in original_item_str:
-                new_item_str = re.sub(r'<prNum>\d+</prNum>', f'<prNum>{index}</prNum>', original_item_str)
-            else:
-                new_item_str = original_item_str.replace("<ITEM>", f"<ITEM>\r\n<prNum>{index}</prNum>")
-            
+            if "<prNum>" in original_item_str: new_item_str = re.sub(r'<prNum>\d+</prNum>', f'<prNum>{index}</prNum>', original_item_str)
+            else: new_item_str = original_item_str.replace("<ITEM>", f"<ITEM>\r\n<prNum>{index}</prNum>")
             item_strings_sorted.append(new_item_str)
-            text_report += f"No. {index:03d} : {ch['name']:<25} | Freq: {ch['freq']}\n"
-            
         combined_items_str = "\r\n".join(item_strings_sorted)
-        start_idx = file_text_original.find("<ITEM>")
-        end_idx = file_text_original.rfind("</ITEM>") + len("</ITEM>")
         
-        if start_idx != -1 and end_idx != -1:
-            final_text_output = file_text_original[:start_idx] + combined_items_str + file_text_original[end_idx:]
+        if app_mode == t['mode_edit']:
+            start_idx = file_text_original.find("<ITEM>")
+            end_idx = file_text_original.rfind("</ITEM>") + len("</ITEM>")
+            if start_idx != -1 and end_idx != -1: final_text_output = file_text_original[:start_idx] + combined_items_str + file_text_original[end_idx:]
+            else: final_text_output = combined_items_str
         else:
-            final_text_output = combined_items_str
+            # صب الـ XML الكلاسيكي بالكامل من الصفر مستهدفاً جروب الدولة المختار بدقة
+            final_text_output = f"<CHANNELS>\r\n<ModelName>{model_name_display}</ModelName>\r\n<CountryGroup>{country_group}</CountryGroup>\r\n" + combined_items_str + "\r\n</CHANNELS>"
             
-        try:
-            final_xml_bytes = final_text_output.encode('utf-8')
-        except UnicodeEncodeError:
-            final_xml_bytes = final_text_output.encode('latin-1')
+        try: file_bytes_out = final_text_output.encode('utf-8')
+        except UnicodeEncodeError: file_bytes_out = final_text_output.encode('latin-1')
 
     st.write("---")
     st.success(t['ready_msg'])
-    
     col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        st.download_button(label=t['btn_download_tll'], data=final_xml_bytes, file_name="GlobalClone00001.TLL", mime="application/octet-stream")
-    with col_btn2:
-        st.download_button(label=t['btn_download_txt'], data=text_report, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
+    with col_btn1: st.download_button(label=t['btn_download_tll'], data=file_bytes_out, file_name="GlobalClone00001.TLL", mime="application/octet-stream")
+    with col_btn2: st.download_button(label=t['btn_download_txt'], data=text_report_out, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
 
-# الفوتر السيبراني
-whatsapp_url = "https://api.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
+# الفوتر السيبراني البراند الرسمي المعتمد
+whatsapp_url = "https://api.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Nathan%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
 st.markdown(f"""
     <div class="futuristic-cyber-footer">
         <div class="footer-dev">🛠️ DEVELOPER ENG: RAFIK NATHAN</div>
