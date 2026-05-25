@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import json
 import re
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # 1. تهيئة الحالات الافتراضية للغة والثيم
 if 'lang' not in st.session_state:
@@ -32,6 +32,7 @@ UI_TEXT = {
         'success_gen': "🌌 تم توليد ملف قنوات LG فائق النقاء ومتوافق مع نطاق بث: ",
         'search_header': "🔍 محرك الفرز الاستخباراتي والبحث الزمني المتقدم:",
         'search_placeholder': "ابحث باسم القناة، التردد، المصدر، أو التاريخ (مثال: 2026-05)...",
+        'multiselect_label': "اضغط هنا لبناء تسلسل خطة العرض التفاعلي للفئات:",
         'ready_msg': "🌌 تم دمج مصفوفة RAMBO وتطهير البيانات بنجاح! الملفات جاهزة للتحميل:",
         'btn_download_tll': "📥 تحميل ملف الشاشة المحدث والمنظم (GlobalClone00001.TLL)",
         'channels_count': "قناة نقيّة",
@@ -58,7 +59,8 @@ UI_TEXT = {
         'success_gen': "🌌 Created pure LG layout for: ",
         'search_header': "🔍 Quantum Search & Temporal Timeline Filter:",
         'search_placeholder': "Search by channel, frequency, source, or date...",
-        'ready_msg': "🌌 Quantum Matrix Cleansing Successful!",
+        'multiselect_label': "Click here to build your interactive category timeline sequence:",
+        'ready_msg': "🌌 Quantum Matrix Cleansing Successful! Assets ready for transfer:",
         'btn_download_tll': "📥 Download Verified TV Configuration (GlobalClone00001.TLL)",
         'channels_count': "Pure Channels",
         'lg_trick_title': "💡 LG Post-Installation Technical Step:",
@@ -80,7 +82,7 @@ with col_theme:
         st.session_state.theme = 'light' if st.session_state.theme == 'dark' else 'dark'
         st.rerun()
 
-# الـ CSS السيبراني الفخم
+# الـ CSS السيبراني
 if st.session_state.theme == 'dark':
     bg_style = "radial-gradient(circle at 50% 50%, #0d061f 0%, #030107 100%)"
     text_color = "#00f0ff"
@@ -111,23 +113,18 @@ st.markdown(f"""
 st.title(t['title'])
 st.markdown(f"<h3 style='text-align:center;'>{t['subtitle']}</h3>", unsafe_allow_html=True)
 
-# 💾 المستودع المرجعي الاستخباراتي التأسيسي لعام 2026
+# 💾 بنك معلومات الترددات المستقرة 2026
 def get_base_2026_db():
     return {
-        # قنوات مسيحية
         "CTV HD": {"frequency": 12022, "polarization": "Vertical", "date": "2026-05-25", "source": "FlySat Official", "category": "⛪ قنوات مسيحية"},
         "ME SAT HD": {"frequency": 11179, "polarization": "Vertical", "date": "2026-05-24", "source": "Nilesat Spectrum", "category": "⛪ قنوات مسيحية"},
         "AGHAPY TV": {"frequency": 11179, "polarization": "Vertical", "date": "2026-05-20", "source": "FlySat", "category": "⛪ قنوات مسيحية"},
         "KOOGI TV": {"frequency": 11096, "polarization": "Vertical", "date": "2026-05-15", "source": "LyngSat", "category": "⛪ قنوات مسيحية"},
         "ALHAYAT TV": {"frequency": 11392, "polarization": "Vertical", "date": "2026-05-01", "source": "Nilesat Official", "category": "⛪ قنوات مسيحية"},
         "MARMARKOS": {"frequency": 11137, "polarization": "Vertical", "date": "2026-04-18", "source": "FlySat", "category": "⛪ قنوات مسيحية"},
-        
-        # قنوات إسلامية
         "EGYPT QURAN": {"frequency": 11179, "polarization": "Vertical", "date": "2026-05-25", "source": "Nilesat Official", "category": "🕌 قنوات إسلامية"},
         "SAUDI QURAN HD": {"frequency": 12149, "polarization": "Horizontal", "date": "2026-05-22", "source": "Arabsat Feed", "category": "🕌 قنوات إسلامية"},
         "AL MAJD QURAN": {"frequency": 12054, "polarization": "Horizontal", "date": "2026-05-10", "source": "Almajd Network", "category": "🕌 قنوات إسلامية"},
-        
-        # باقات المنوعات والأفلام والرياضة
         "MIX ONE HD": {"frequency": 11843, "polarization": "Horizontal", "date": "2026-05-25", "source": "Nilesat Monitor", "category": "🍿 أفلام عربية وأجنبية"},
         "ON TIME SPORTS 1 HD": {"frequency": 11861, "polarization": "Vertical", "date": "2026-05-18", "source": "URC Egypt", "category": "⚽ رياضة"},
         "MBC DRAMA HD": {"frequency": 11938, "polarization": "Vertical", "date": "2026-05-12", "source": "MBC Group", "category": "🎬 مسلسلات ودراما"},
@@ -156,10 +153,9 @@ def save_persistent_brain(updated_db):
 
 MASTER_2026_DB = load_persistent_brain()
 
-# --- 🧠 محرك الفرز الزمني والبحث الاستخباراتي المتقدم ---
+# --- 🧠 العدادات وفلاتر البحث الزمني المتقدم ---
 st.markdown(f"### {t['search_header']}")
 
-# تقسيم الشاشة لعدادات إحصائية حية
 today_str = "2026-05-25"  
 today_dt = datetime.strptime(today_str, "%Y-%m-%d")
 
@@ -184,18 +180,16 @@ with col_m3:
 
 st.write("")
 
-# خانة البحث الشامل وفلاتر الرصد المتقدمة
 col_search, col_filter_time, col_filter_cat = st.columns([5, 3, 3])
 
 with col_search:
-    search_q = st.text_input("", placeholder=t['search_placeholder']).strip().upper()
+    search_q = st.text_input("", placeholder=t['search_placeholder'], key="radar_search").strip().upper()
 with col_filter_time:
     time_filter = st.selectbox("📅 النطاق الزمني للرصد:", ["كل الترددات المخزنة", "حصريات اليوم (اليوم فقط)", "أحدث التغييرات هذا الأسبوع", "تحديثات شهر مايو 2026"])
 with col_filter_cat:
     distinct_cats = ["كل الفئات"] + list(set([v.get("category", "📺 قنوات عامة ومنوعات") for v in MASTER_2026_DB.values()]))
     cat_filter = st.selectbox("🗂️ الفرز حسب القسم الميكانيكي:", distinct_cats)
 
-# تجميع وفلترة البيانات بناء على طلب العميل المتقدم
 processed_search_results = []
 for index, (ch_name, info) in enumerate(MASTER_2026_DB.items(), start=1):
     ch_cat = info.get("category", "📺 قنوات عامة ومنوعات")
@@ -203,16 +197,12 @@ for index, (ch_name, info) in enumerate(MASTER_2026_DB.items(), start=1):
     ch_source = info.get("source", "Live Feed")
     ch_freq = f"{info['frequency']} MHz ({info['polarization'][0]})"
     
-    # 1. فلترة البحث النصي الشامل (اسم، تردد، مصدر، تاريخ)
     if search_q:
         match_text = (search_q in ch_name) or (search_q in ch_freq) or (search_q in ch_source.upper()) or (search_q in ch_date_str)
         if not match_text: continue
         
-    # 2. فلترة القسم (الكاتوجري)
-    if cat_filter != "كل الفئات" and ch_cat != cat_filter:
-        continue
+    if cat_filter != "كل الفئات" and ch_cat != cat_filter: continue
         
-    # 3. فلترة الوقت الذكية
     try:
         ch_dt = datetime.strptime(ch_date_str, "%Y-%m-%d")
         days_diff = (today_dt - ch_dt).days
@@ -221,9 +211,7 @@ for index, (ch_name, info) in enumerate(MASTER_2026_DB.items(), start=1):
         elif time_filter == "تحديثات شهر مايو 2026" and not ch_date_str.startswith("2026-05"): continue
     except: pass
 
-    # وضع علامة مميزة جداً للقنوات اللي نزلت النهارده
     status_tag = "🌟 حصرية اليوم" if ch_date_str == today_str else "🟢 نشط"
-
     processed_search_results.append({
         "حالة الرصد": status_tag,
         "اسم القناة الفضائية": ch_name,
@@ -240,7 +228,7 @@ else:
 
 st.write("---")
 
-# باقي الكود البرمجي الخاص بمعالجة وترتيب ملفات التلفزيون TLL من الفلاشة
+# --- 🛠️ لوحة العمل ومصنع الـ TLL ---
 st.sidebar.markdown(f"### {t['mode_selector']}")
 app_mode = st.sidebar.radio("", [t['mode_edit'], t['mode_gen']])
 
@@ -290,8 +278,6 @@ if app_mode == t['mode_edit']:
         if is_modern:
             broadcast_data = json.loads(legacy_broadcast_tag.text)
             uploaded_list = broadcast_data.get("channelList", [])
-            
-            # رصد القنوات الجديدة من فلاشة المستخدم ووضع تاريخ اللحظة أوتوماتيك ليدخل محرك الرصد فوراً
             for c in uploaded_list:
                 name_up = c.get("channelName", "").strip().upper()
                 freq_up = c.get("frequency", 0)
@@ -301,7 +287,7 @@ if app_mode == t['mode_edit']:
                         MASTER_2026_DB[name_up] = {
                             "frequency": int(freq_up), 
                             "polarization": pol_up,
-                            "date": today_str, # يسجل تاريخ اليوم أوتوماتيك!
+                            "date": today_str,
                             "source": "User Flash Injection",
                             "category": ai_classify(name_up)
                         }
@@ -312,16 +298,13 @@ if app_mode == t['mode_edit']:
                 ch_name_upper = ch_name.upper()
                 if not ch_name_upper: continue
                 old_freq = str(ch.get("frequency", "0"))
-                
                 if enforce_2026 and ch_name_upper in MASTER_2026_DB:
                     verified_freq = MASTER_2026_DB[ch_name_upper]["frequency"]
                     ch["frequency"] = int(verified_freq)
                     ch["polarization"] = MASTER_2026_DB[ch_name_upper]["polarization"]
                     old_freq = str(verified_freq)
-                
                 unique_channels_map[ch_name_upper] = {"id": idx, "name": ch_name, "freq": old_freq, "raw_node": ch}
         else:
-            # معالجة الملفات الكلاسيكية
             item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text_original, re.DOTALL)
             for item_str in item_blocks:
                 name_match = re.search(r'<vchName>(.*?)</vchName>', item_str)
@@ -355,10 +338,9 @@ if app_mode == t['mode_edit']:
 
         if database_needs_save:
             save_persistent_brain(MASTER_2026_DB)
-            st.toast("📡 تم رصد قنوات جديدة وحفظها بتاريخ اليوم في رادار المنصة الأبدي!", icon="🧠")
+            st.toast("📡 تم حفظ الترددات الممتصة بنجاح في مخزن السيرفر!", icon="🧠")
         file_processed = True
 else:
-    # وضع التوليد المباشر للمصفوفة
     if st.button(t['btn_generate']) or 'generated_active' in st.session_state:
         st.session_state.generated_active = True
         idx = 0
@@ -369,14 +351,18 @@ else:
         file_processed = True
 
 if file_processed and unique_channels_map:
+    st.markdown(f"""<div class="lg-trick-box"><h4>{t['lg_trick_title']}</h4><p style="white-space: pre-line;">{t['lg_trick_text']}</p></div>""", unsafe_allow_html=True)
+    
     cleaned_channels_list = list(unique_channels_map.values())
+    
+    # استدعاء مفتاح الـ multiselect الموثق والمعاد تعريفه بشكل صحيح وآمن تماماً لمنع الـ KeyError
     user_priority = st.multiselect(t['multiselect_label'], options=ALL_AVAILABLE_CATEGORIES, default=[])
     final_priority = list(user_priority)
     for cat in ALL_AVAILABLE_CATEGORIES:
         if cat not in final_priority: final_priority.append(cat)
+        
     channels_sorted = sorted(cleaned_channels_list, key=lambda x: final_priority.index(ai_classify(x["name"])))
     
-    # تحضير وتنزيل فايل الـ TLL المحدث والمنظم كلياً
     if 'is_modern' in locals() and is_modern:
         final_list_modern = []
         for index, ch in enumerate(channels_sorted, start=1):
@@ -397,7 +383,7 @@ if file_processed and unique_channels_map:
     st.success(t['ready_msg'])
     st.download_button(label=t['btn_download_tll'], data=file_bytes_out, file_name="GlobalClone00001.TLL", mime="application/octet-stream")
 
-# الفوتر السيبراني للمطور رفيق ناتان
+# الفوتر السيبراني
 st.markdown(f"""
     <div class="futuristic-cyber-footer">
         <div style="color:#ff007f;font-size:24px;font-weight:bold;">🛠️ DEVELOPER ENG: RAFIK NATHAN</div>
