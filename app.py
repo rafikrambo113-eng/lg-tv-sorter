@@ -2,76 +2,86 @@ import streamlit as st
 import xml.etree.ElementTree as ET
 import json
 import re
+import os
+import io
+from datetime import datetime
 
-# 1. تهيئة الحالات الافتراضية للغة والثيم في جلسة المستخدم
 if 'lang' not in st.session_state:
     st.session_state.lang = 'ar'
 if 'theme' not in st.session_state:
     st.session_state.theme = 'dark'
 
-# قاموس اللغتين لترجمة واجهة المستخدم السيبرانية
 UI_TEXT = {
     'ar': {
-        'title': "📺 RAMBO - المنسق العالمي لشاشات LG",
-        'subtitle': "⚡ هندسة متطورة لترتيب ملفات القنوات بالذكاء الاصطناعي (AI)",
-        'upload_label': "🚀 اختر ملف القنوات (GlobalClone00001.TLL) من الفلاشة:",
-        'update_freq_label': "⚛️ تفعيل الصيانة الذكية وتحديث الترددات تلقائياً (حسب القمر المكتشف)",
-        'add_new_ch_label': "✨ فحص وزرع القنوات الجديدة المتاحة تلقائياً في القمر الصناعي المكتشف",
-        'success_read': "🛸 تم قراءة الهيكل بنجاح! الموديل الحالي: ",
-        'search_header': "🔍 محرك البحث الذكي عن القنوات داخل الملف:",
-        'search_placeholder': "اكتب اسم القناة هنا للبحث...",
-        'search_col_num': "الرقم الحالي",
-        'search_col_name': "اسم القناة",
-        'search_col_cat': "الفئة (Category)",
-        'search_col_freq': "التردد (Frequency)",
-        'search_no_results': "⚠️ لم يتم العثور على أي قنوات مطابقة للبحث.",
-        'config_title': "🎛️ مصفوفة ترتيب الفئات المخصصة حسب اختيارك اليدوي:",
-        'config_tip': "💡 ملحوظة: اضغط على الفئات بالترتيب الفعلي المفضل لديك. الفئة التي تختارها أولاً ستتصدر شاشة التلفزيون.",
-        'multiselect_label': "اضغط هنا لبناء تسلسل خطة العرض التفاعلي للفئات:",
-        'preview_title': "📊 مجسم المعاينة الحية لتوزيع القنوات الحالي:",
-        'channels_count': "قناة",
-        'ready_msg': "🌌 تم دمج مصفوفة RAMBO وإعادة الهيكلة بنجاح! الملفات جاهزة للتحميل:",
-        'btn_download_tll': "📥 تحميل ملف الشاشة النهائي (GlobalClone00001.TLL)",
-        'btn_download_txt': "📄 تحميل تقرير الترتيب كملف نصي (Channels_List.txt)",
-        'txt_header': "📄 تقرير الترتيب وتحديثات الترددات النهائي لشاشة LG",
-        'txt_order': "🛠️ ترتيب الفئات المختار: ",
-        'lg_trick_title': "💡 ملحوظة فنية هامة جداً بعد تنزيل الملف على شاشة LG:",
-        'lg_trick_text': "في بعض الحالات، بعد تنزيل ملف القنوات على الشاشة، قد تشعر أن القنوات ليست منظمة كما رتبتها. لحل هذا الأمر فوراً واجبار الشاشة على تفعيل الترتيب الصحيح، قم بالآتي:\n1. من إعدادات التلفزيون اختار **القنوات (Channels)**.\n2. بعد ذلك اختار **مدير القنوات (Channel Manager)**.\n3. اختار **التعديل على كل القنوات (Edit All Channels)**.\n4. ستظهر لك القنوات المرتبة ويكون بعضها في وضع مخفي، قم **بتحديد كل القنوات** واختار **استعادة (Restore)**.\n*ملحوظة: تفعل هذه الخطوة فقط إذا شعرت أن الملف بعد التنزيل غير مرتب كما حددته على الموقع.*"
+        'title': "📺 RAMBO ULTRA - رادار الترددات الحية لشاشات LG",
+        'subtitle': "📡 محرك بحث استخباراتي يرصد أحدث ترددات 2026 على القمر بالتاريخ والمصدر والكاتوجري",
+        'mode_selector': "🛠️ اختر وضع العمل:",
+        'mode_edit': "🛸 تعديل وترتيب ملف مرفوع",
+        'mode_gen': "⚛️ توليد ملف جديد تماماً",
+        'model_label': "📺 اختر موديل شاشة LG:",
+        'model_modern': "Smart webOS (شاشات سمارت حديثة)",
+        'model_legacy': "Legacy / 32 Inch (الشاشات الكلاسيكية)",
+        'country_label': "🌍 اختر بلد البث:",
+        'country_egy': "مصر (Egypt) [NAFR]",
+        'country_ksa': "السعودية (KSA) [MIDE]",
+        'btn_generate': "🚀 إطلاق مصفوفة التوليد",
+        'upload_label': "🚀 ارفع ملف القنوات (GlobalClone00001.TLL):",
+        'upload_txt_label': "📋 ارفع قائمة الترتيب والترددات (.txt / .csv):",
+        'upload_txt_help': "الفورمات: اسم_القناة,تردد,فئة (كل قناة في سطر) — التردد والفئة اختياريان",
+        'txt_preview_header': "📋 معاينة قائمة الترتيب المرفوعة:",
+        'txt_stats': "تم تحميل {} قناة من الملف — تردد الملف يطغى على البنك",
+        'txt_download_template': "⬇️ تحميل قالب CSV جاهز",
+        'update_freq_label': "⚛️ تطبيق الترددات الرسمية 2026",
+        'add_new_ch_label': "✨ امتصاص القنوات الجديدة وحفظها",
+        'success_read': "🛸 تم قراءة الملف بنجاح! الموديل: ",
+        'success_gen': "🌌 تم توليد ملف قنوات LG لنطاق: ",
+        'search_header': "🔍 محرك الفرز والبحث الاستخباراتي:",
+        'search_placeholder': "ابحث باسم القناة، التردد، المصدر، أو التاريخ...",
+        'multiselect_label': "ترتيب خطة العرض حسب الفئات (يُستخدم إذا لم يُرفع ملف ترتيب):",
+        'ready_msg': "🌌 تم دمج المصفوفة وتطهير البيانات! الملف جاهز:",
+        'btn_download_tll': "📥 تحميل ملف الشاشة المحدث (GlobalClone00001.TLL)",
+        'channels_count': "قناة نقيّة",
+        'lg_trick_title': "💡 خطوة هامة بعد تركيب الملف على شاشة LG:",
+        'lg_trick_text': "إعدادات التلفزيون ← القنوات ← مدير القنوات ← التعديل على كل القنوات ← حدد الكل ← استعادة (Restore) لإجبار الشاشة على تفعيل الترتيب الفعلي.",
     },
     'en': {
-        'title': "📺 RAMBO - LG Universal AI Channel Sorter",
-        'subtitle': "⚡ Next-Gen Cyber-Engineered Architecture for 3D Channel Layouts",
-        'upload_label': "🚀 Upload Channel File (GlobalClone00001.TLL) from USB Flash:",
-        'update_freq_label': "⚛️ Activate Satellite Live Frequency Auto-Update (AI Auto-Detect)",
-        'add_new_ch_label': "✨ Scan & Inject New Satellite Channels Automatically based on Sat Detection",
-        'success_read': "🛸 Matrix Structure Decoded Successfully! Model Profile: ",
-        'search_header': "🔍 Dynamic Channel Search Engine:",
-        'search_placeholder': "Type channel name to look up...",
-        'search_col_num': "No.",
-        'search_col_name': "Channel Name",
-        'search_col_cat': "Category",
-        'search_col_freq': "Frequency",
-        'search_no_results': "⚠️ No channels matching your search criteria.",
-        'config_title': "🎛️ Custom Category Priority Control Matrix:",
-        'config_tip': "💡 Hint: Click categories in exact order. The first selection populates the absolute top of your TV.",
-        'multiselect_label': "Select categories one by one to configure your linear priority:",
-        'preview_title': "📊 Channel Grid Live 3D Preview Dashboard:",
-        'channels_count': "Channels",
-        'ready_msg': "🌌 Quantum Matrix Deployment Successful! Assets ready for transfer:",
-        'btn_download_tll': "📥 Download Final TV Configuration (GlobalClone00001.TLL)",
-        'btn_download_txt': "📄 Download Sorting Text Diagnostics (Channels_List.txt)",
-        'txt_header': "📄 Final LG TV Channel Sorting & Updates Report",
-        'txt_order': "🛠️ Selected Category Priority: ",
-        'lg_trick_title': "💡 Critical Expert Technical Tip After Uploading to LG TV:",
-        'lg_trick_text': "In some cases, after importing the file into your LG TV, you might feel that the channels are not perfectly sorted as configured. To fix this behavior instantly, follow these steps:\n1. Open TV **Settings** -> Go to **Channels**.\n2. Select **Channel Manager**.\n3. Choose **Edit All Channels**.\n4. You will see your sorted channels, but some might be hidden by default. **Select All Channels** and click **Restore**.\n*Note: This is only required if you feel the TV cache mixed the sorting order after the USB upload.*"
+        'title': "📺 RAMBO ULTRA - LG Satellite Intelligence Sorter",
+        'subtitle': "📡 AI Search & Tracking Engine: Live 2026 Frequencies by Date, Source & Category",
+        'mode_selector': "🛠️ Select Operations Mode:",
+        'mode_edit': "🛸 Edit/Optimize USB File",
+        'mode_gen': "⚛️ Generate Brand New .TLL",
+        'model_label': "📺 Select LG TV Model:",
+        'model_modern': "Smart webOS (Modern Smart Models)",
+        'model_legacy': "Legacy / 32 Inch (Classic Profile)",
+        'country_label': "🌍 Select Broadcast Country:",
+        'country_egy': "Egypt [NAFR]",
+        'country_ksa': "Saudi Arabia [MIDE]",
+        'btn_generate': "🚀 Fire Matrix Generation Engine",
+        'upload_label': "🚀 Upload Channel File (GlobalClone00001.TLL):",
+        'upload_txt_label': "📋 Upload Sort & Frequency List (.txt / .csv):",
+        'upload_txt_help': "Format: channel_name,frequency,category (one per line) — frequency & category optional",
+        'txt_preview_header': "📋 Uploaded Sort List Preview:",
+        'txt_stats': "Loaded {} channels from file — file frequency overrides the bank",
+        'txt_download_template': "⬇️ Download Ready CSV Template",
+        'update_freq_label': "⚛️ Enforce Official Live 2026 Frequencies",
+        'add_new_ch_label': "✨ Absorb New Channels to Persistent Memory",
+        'success_read': "🛸 File Decoded. Profile: ",
+        'success_gen': "🌌 Pure LG layout created for: ",
+        'search_header': "🔍 Quantum Search & Temporal Timeline Filter:",
+        'search_placeholder': "Search by channel, frequency, source, or date...",
+        'multiselect_label': "Build your interactive category sequence (used if no sort file uploaded):",
+        'ready_msg': "🌌 Matrix Cleansing Successful! Asset ready:",
+        'btn_download_tll': "📥 Download Verified TV Config (GlobalClone00001.TLL)",
+        'channels_count': "Pure Channels",
+        'lg_trick_title': "💡 LG Post-Installation Step:",
+        'lg_trick_text': "Settings → Channels → Channel Manager → Edit All Channels → Select All → Restore to enforce correct sort order.",
     }
 }
 
+st.set_page_config(page_title="RAMBO ULTRA", page_icon="📡", layout="wide")
+
 t = UI_TEXT[st.session_state.lang]
 
-st.set_page_config(page_title="RAMBO - LG Futuristic AI Sorter", page_icon="⚡", layout="wide")
-
-# لوحة التحكم العلوية للغات والثيمات
 col_lang, col_theme, _ = st.columns([1.2, 1.5, 8])
 with col_lang:
     if st.button("🌐 English" if st.session_state.lang == 'ar' else "🌐 العربية"):
@@ -82,315 +92,753 @@ with col_theme:
         st.session_state.theme = 'light' if st.session_state.theme == 'dark' else 'dark'
         st.rerun()
 
-# إعداد الـ CSS السيبراني
 if st.session_state.theme == 'dark':
-    bg_style = "radial-gradient(circle at 50% 50%, #110926 0%, #05020d 100%)"
-    text_color = "#00f0ff"
-    box_bg = "rgba(13, 7, 33, 0.85)"
-    box_border = "#00f0ff"
-    box_shadow = "rgba(0, 240, 255, 0.35)"
-    text_shadow_glow = "0 0 5px rgba(0, 240, 255, 0.4)"
-    footer_bg = "#080314"
-    footer_text = "#ffffff"
+    BG        = "#06020f"
+    BG2       = "#0d0520"
+    CYAN      = "#00e5ff"
+    PINK      = "#ff0066"
+    GREEN     = "#00ff99"
+    TEXT      = "#c8f0ff"
+    MUTED     = "#7090aa"
+    BORDER    = "rgba(0,229,255,0.22)"
+    CARD_BG   = "rgba(0,229,255,0.04)"
+    CARD2_BG  = "rgba(255,0,102,0.06)"
+    CARD2_BDR = "rgba(255,0,102,0.30)"
+    TXT_BOX_BG = "rgba(0,229,255,0.06)"
+    TXT_BOX_BD = "rgba(0,229,255,0.35)"
 else:
-    bg_style = "radial-gradient(circle at 50% 50%, #f4f5f7 0%, #e4e7eb 100%)"
-    text_color = "#0d0722"
-    box_bg = "#ffffff"
-    box_border = "#ff007f"
-    box_shadow = "rgba(255, 0, 127, 0.15)"
-    text_shadow_glow = "none"
-    footer_bg = "#110926"
-    footer_text = "#ffffff"
+    BG        = "#f0f4f8"
+    BG2       = "#ffffff"
+    CYAN      = "#0077aa"
+    PINK      = "#cc0044"
+    GREEN     = "#007744"
+    TEXT      = "#0d1a26"
+    MUTED     = "#556677"
+    BORDER    = "rgba(0,119,170,0.25)"
+    CARD_BG   = "rgba(0,119,170,0.05)"
+    CARD2_BG  = "rgba(204,0,68,0.05)"
+    CARD2_BDR = "rgba(204,0,68,0.30)"
+    TXT_BOX_BG = "rgba(0,119,170,0.06)"
+    TXT_BOX_BD = "rgba(0,119,170,0.35)"
+
+FONT_MAIN = "'Cairo', sans-serif" if st.session_state.lang == 'ar' else "'Orbitron', sans-serif"
+DIR       = "rtl" if st.session_state.lang == 'ar' else "ltr"
 
 st.markdown(f"""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Cairo:wght@400;700&display=swap');
-    .main {{ background: {bg_style} !important; color: {text_color} !important; font-family: { "'Cairo', sans-serif" if st.session_state.lang == 'ar' else "'Orbitron', sans-serif" }; }}
-    h1 {{ color: #ff007f !important; text-shadow: 0 0 10px #ff007f, 0 0 25px rgba(255, 0, 127, 0.4) !important; text-align: center; font-weight: 900; margin-top: 5px; }}
-    h3, p, label, .stMarkdown, .stInfo, div[data-testid="stMarkdownContainer"] p {{ color: {text_color} !important; text-shadow: {text_shadow_glow}; }}
-    .stTextInput>div>div>input {{ background-color: {box_bg} !important; color: {text_color} !important; border: 2px solid {box_border} !important; border-radius: 10px !important; }}
-    .stCheckbox, .stMultiSelect, div[data-testid="stExpander"], div[data-testid="stFileUploader"], .lg-trick-box {{ background: {box_bg} !important; border: 2px solid {box_border} !important; box-shadow: 0px 5px 15px {box_shadow} !important; border-radius: 14px !important; padding: 18px !important; margin-bottom: 20px !important; }}
-    .lg-trick-box {{ border-color: #ff007f !important; box-shadow: 0px 5px 15px rgba(255, 0, 127, 0.25) !important; }}
-    .stButton>button {{ background: linear-gradient(135deg, #ff007f 0%, #aa0055 100%) !important; color: #ffffff !important; border: 2px solid #ff007f !important; border-radius: 12px !important; font-weight: bold; }}
-    .futuristic-cyber-footer {{ background: {footer_bg}; border: 2px solid #00f0ff; color: {footer_text} !important; padding: 35px; text-align: center; border-radius: 20px; margin-top: 65px; font-family: 'Orbitron', sans-serif; }}
-    .footer-dev {{ color: #ff007f; font-size: 26px; font-weight: bold; }}
-    .cyber-whatsapp-btn {{ color: #25d366 !important; padding: 14px 35px; border-radius: 35px; display: inline-block; font-weight: bold; border: 2px solid #25d366; text-decoration: none; margin-top: 20px; }}
-    </style>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+html, body, [class*="css"] {{
+    direction: {DIR};
+    font-family: {FONT_MAIN};
+    background-color: {BG} !important;
+    color: {TEXT} !important;
+}}
+h1 {{
+    font-family: 'Orbitron', monospace !important;
+    font-weight: 900 !important;
+    text-align: center;
+    background: linear-gradient(90deg, {CYAN}, {PINK});
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+    margin-bottom: 4px !important;
+}}
+h2, h3, p, label, .stMarkdown, .stText {{ color: {TEXT} !important; }}
+.scan-line {{
+    height: 2px;
+    background: linear-gradient(90deg, transparent, {CYAN}, {PINK}, transparent);
+    border-radius: 2px;
+    margin: 8px auto 20px;
+    width: 70%;
+    animation: scan 3s ease-in-out infinite alternate;
+}}
+@keyframes scan {{ from{{opacity:.3}} to{{opacity:1}} }}
+.cyber-metric-card {{
+    background: {CARD_BG};
+    border: 1px solid {BORDER};
+    border-radius: 14px;
+    padding: 16px 12px;
+    text-align: center;
+    transition: transform .2s;
+}}
+.cyber-metric-card:hover {{ transform: translateY(-3px); }}
+.metric-num {{
+    font-family: 'Orbitron', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 6px 0 2px;
+}}
+.metric-label {{ font-size: 11px; color: {MUTED}; }}
+div[data-testid="stFileUploader"],
+div[data-testid="stExpander"],
+.stCheckbox {{
+    background: {CARD2_BG} !important;
+    border: 1px solid {CARD2_BDR} !important;
+    border-radius: 14px !important;
+    padding: 14px !important;
+    margin-bottom: 14px !important;
+}}
+.stTextInput > div > div > input {{
+    background: {BG2} !important;
+    color: {TEXT} !important;
+    border: 1px solid {BORDER} !important;
+    border-radius: 10px !important;
+    font-family: {FONT_MAIN};
+}}
+.stSelectbox > div > div {{
+    background: {BG2} !important;
+    border: 1px solid {BORDER} !important;
+    border-radius: 10px !important;
+    color: {TEXT} !important;
+}}
+.stButton > button {{
+    background: linear-gradient(135deg, {PINK} 0%, #990033 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-family: {FONT_MAIN};
+    width: 100%;
+    padding: 10px 0;
+    transition: opacity .2s, transform .15s;
+}}
+.stButton > button:hover {{ opacity: .88; transform: translateY(-2px); }}
+.stDownloadButton > button {{
+    background: linear-gradient(135deg, {CYAN} 0%, #005577 100%) !important;
+    color: {BG} !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    width: 100%;
+    padding: 10px 0;
+}}
+section[data-testid="stSidebar"] {{
+    background: {BG2} !important;
+    border-left: 2px solid {BORDER};
+}}
+.lg-tip-box {{
+    background: rgba(255,204,0,.07);
+    border: 1px solid rgba(255,204,0,.35);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-top: 14px;
+    color: #ffcc00;
+    font-size: 13px;
+    line-height: 1.8;
+}}
+.lg-tip-box strong {{
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 6px;
+}}
+.txt-upload-box {{
+    background: {TXT_BOX_BG};
+    border: 1px solid {TXT_BOX_BD};
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin: 14px 0;
+}}
+.txt-upload-title {{
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    color: {CYAN};
+    margin-bottom: 8px;
+    font-weight: 700;
+}}
+.txt-preview-row {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid {BORDER};
+    font-size: 12px;
+    direction: ltr;
+}}
+.txt-preview-row:last-child {{ border-bottom: none; }}
+.txt-ch-name  {{ color: {CYAN};  font-weight: 600; min-width: 160px; }}
+.txt-ch-freq  {{ color: {GREEN}; font-family: 'Orbitron', monospace; font-size: 11px; min-width: 120px; text-align:center; }}
+.txt-ch-cat   {{ color: {MUTED}; font-size: 11px; min-width: 160px; text-align: right; }}
+.txt-ch-src   {{ color: #ffcc00; font-size: 10px; min-width: 80px; text-align: right; }}
+.stDataFrame {{ border-radius: 12px; overflow: hidden; border: 1px solid {BORDER} !important; }}
+.cyber-footer {{
+    background: {CARD_BG};
+    border: 1px solid {BORDER};
+    border-radius: 16px;
+    padding: 22px;
+    text-align: center;
+    margin-top: 50px;
+    font-family: 'Orbitron', monospace;
+}}
+</style>
+<div class="scan-line"></div>
 """, unsafe_allow_html=True)
 
 st.title(t['title'])
-st.markdown(f"<h3>{t['subtitle']}</h3>", unsafe_allow_html=True)
+st.markdown(f"<h3 style='text-align:center;color:{MUTED};font-size:13px;'>{t['subtitle']}</h3>", unsafe_allow_html=True)
 
-# 🛰️ قاعدة البيانات السحابية للترددات المرجعية الحية لقمر نايل سات وتواريخ التعديل الرسمية
-NILESAT_LIVE_DB = {
-    "AL HAYAT": {"frequency": 12207, "polarization": "Vertical", "update_date": "2026-05-10"},
-    "SAT-7 KIDS": {"frequency": 11353, "polarization": "Vertical", "update_date": "2026-04-18"},
-    "SAT-7 ARABIC": {"frequency": 11353, "polarization": "Vertical", "update_date": "2026-04-18"},
-    "ALKARMA ME 1": {"frequency": 11096, "polarization": "Horizontal", "update_date": "2026-02-05"},
-    "AGHAPY TV": {"frequency": 11179, "polarization": "Horizontal", "update_date": "2026-03-12"},
-    "CTV": {"frequency": 12022, "polarization": "Vertical", "update_date": "2026-05-01"},
-    "MBC 2": {"frequency": 11938, "polarization": "Vertical", "update_date": "2026-01-20"},
-    "QATAR TV HD": {"frequency": 10834, "polarization": "Horizontal", "update_date": "2026-05-14"}
-}
+# ══════════════════════════════════════════════════════════════
+#  بنك الترددات 2026
+# ══════════════════════════════════════════════════════════════
+def get_base_2026_db():
+    return {
+        "CTV HD":             {"frequency": 12022, "polarization": "Vertical",   "date": "2026-05-25", "source": "FlySat Official",    "category": "⛪ قنوات مسيحية"},
+        "ME SAT HD":          {"frequency": 11179, "polarization": "Vertical",   "date": "2026-05-24", "source": "Nilesat Spectrum",    "category": "⛪ قنوات مسيحية"},
+        "AGHAPY TV":          {"frequency": 11179, "polarization": "Vertical",   "date": "2026-05-20", "source": "FlySat",              "category": "⛪ قنوات مسيحية"},
+        "KOOGI TV":           {"frequency": 11096, "polarization": "Vertical",   "date": "2026-05-15", "source": "LyngSat",             "category": "⛪ قنوات مسيحية"},
+        "ALHAYAT TV":         {"frequency": 11392, "polarization": "Vertical",   "date": "2026-05-01", "source": "Nilesat Official",    "category": "⛪ قنوات مسيحية"},
+        "MARMARKOS":          {"frequency": 11137, "polarization": "Vertical",   "date": "2026-04-18", "source": "FlySat",              "category": "⛪ قنوات مسيحية"},
+        "SAT-7 ARABIC":       {"frequency": 11977, "polarization": "Vertical",   "date": "2026-05-10", "source": "FlySat",              "category": "⛪ قنوات مسيحية"},
+        "EGYPT QURAN":        {"frequency": 11179, "polarization": "Vertical",   "date": "2026-05-25", "source": "Nilesat Official",    "category": "🕌 قنوات إسلامية"},
+        "SAUDI QURAN HD":     {"frequency": 12149, "polarization": "Horizontal", "date": "2026-05-22", "source": "Arabsat Feed",        "category": "🕌 قنوات إسلامية"},
+        "AL MAJD QURAN":      {"frequency": 12054, "polarization": "Horizontal", "date": "2026-05-10", "source": "Almajd Network",      "category": "🕌 قنوات إسلامية"},
+        "RAHMA TV":           {"frequency": 11283, "polarization": "Vertical",   "date": "2026-05-08", "source": "Nilesat",             "category": "🕌 قنوات إسلامية"},
+        "MBC DRAMA HD":       {"frequency": 11938, "polarization": "Vertical",   "date": "2026-05-12", "source": "MBC Group",           "category": "🎬 مسلسلات ودراما"},
+        "ROTANA DRAMA":       {"frequency": 11843, "polarization": "Horizontal", "date": "2026-05-05", "source": "Rotana Group",        "category": "🎬 مسلسلات ودراما"},
+        "ALWAN HD":           {"frequency": 11958, "polarization": "Horizontal", "date": "2026-04-30", "source": "LyngSat",             "category": "🎬 مسلسلات ودراما"},
+        "MIX ONE HD":         {"frequency": 11843, "polarization": "Horizontal", "date": "2026-05-25", "source": "Nilesat Monitor",     "category": "🍿 أفلام عربية وأجنبية"},
+        "MBC2 HD":            {"frequency": 11938, "polarization": "Vertical",   "date": "2026-05-14", "source": "MBC Group",           "category": "🍿 أفلام عربية وأجنبية"},
+        "ROTANA CINEMA":      {"frequency": 11843, "polarization": "Horizontal", "date": "2026-05-03", "source": "Rotana Group",        "category": "🍿 أفلام عربية وأجنبية"},
+        "ON TIME SPORTS 1 HD":{"frequency": 11861, "polarization": "Vertical",   "date": "2026-05-18", "source": "URC Egypt",           "category": "⚽ رياضة"},
+        "ON TIME SPORTS 2 HD":{"frequency": 11843, "polarization": "Vertical",   "date": "2026-05-18", "source": "URC Egypt",           "category": "⚽ رياضة"},
+        "BEIN SPORTS HD1":    {"frequency": 12226, "polarization": "Horizontal", "date": "2026-05-15", "source": "beIN Sports",         "category": "⚽ رياضة"},
+        "WANNASAH HD":        {"frequency": 11938, "polarization": "Vertical",   "date": "2026-05-24", "source": "Nilesat Transponder", "category": "👶 أطفال وكرتون"},
+        "SPACE TOON":         {"frequency": 11977, "polarization": "Horizontal", "date": "2026-04-20", "source": "FlySat",              "category": "👶 أطفال وكرتون"},
+        "MBC3 HD":            {"frequency": 11938, "polarization": "Vertical",   "date": "2026-05-10", "source": "MBC Group",           "category": "👶 أطفال وكرتون"},
+        "NILE NEWS":          {"frequency": 11179, "polarization": "Vertical",   "date": "2026-05-22", "source": "Nilesat Official",    "category": "📰 أخبار وسياسة"},
+        "AL JAZEERA HD":      {"frequency": 11938, "polarization": "Horizontal", "date": "2026-05-20", "source": "Arabsat",             "category": "📰 أخبار وسياسة"},
+        "CAIRO NEWS":         {"frequency": 11843, "polarization": "Horizontal", "date": "2026-05-16", "source": "Nilesat",             "category": "📰 أخبار وسياسة"},
+        "MBC1 HD":            {"frequency": 11938, "polarization": "Vertical",   "date": "2026-05-11", "source": "MBC Group",           "category": "📺 قنوات عامة ومنوعات"},
+        "NILE TV HD":         {"frequency": 11179, "polarization": "Vertical",   "date": "2026-05-09", "source": "Nilesat",             "category": "📺 قنوات عامة ومنوعات"},
+        "DREAM TV HD":        {"frequency": 11843, "polarization": "Horizontal", "date": "2026-05-07", "source": "FlySat",              "category": "📺 قنوات عامة ومنوعات"},
+    }
 
-# 🆕 القنوات الجديدة الحصرية التي سيتم زرعها وحقنها "تبع النايل سات"
-NILESAT_NEW_CHANNELS = [
-    {"name": "RAMBO ACTION HD", "frequency": 10834, "polarization": "Horizontal", "launch_date": "2026-01-15", "source": "Nilesat Official"},
-    {"name": "MISHMISH CINEMA", "frequency": 11938, "polarization": "Vertical", "launch_date": "2026-04-10", "source": "KingOfSat Database"},
-    {"name": "ON TIME SPORTS 4 HD", "frequency": 11861, "polarization": "Vertical", "launch_date": "2026-05-01", "source": "FlySat Live"}
-]
+BRAIN_FILE = "ai_brain_db.json"
 
-ALL_AVAILABLE_CATEGORIES = [
-    "⛪ Christian Channels" if st.session_state.lang == 'en' else "⛪ قنوات مسيحية",
-    "🕌 Islamic Channels" if st.session_state.lang == 'en' else "🕌 قنوات إسلامية",
-    "🎬 Drama & Series" if st.session_state.lang == 'en' else "🎬 مسلسلات ودراما",
-    "🍿 Movies (Ar/En)" if st.session_state.lang == 'en' else "🍿 أفلام عربية وأجنبية",
-    "👶 Kids & Cartoon" if st.session_state.lang == 'en' else "👶 أطفال وكرتون",
-    "⚽ Sports" if st.session_state.lang == 'en' else "⚽ رياضة",
-    "📰 News & Politics" if st.session_state.lang == 'en' else "📰 أخبار وسياسة",
-    "📺 General Channels" if st.session_state.lang == 'en' else "📺 قنوات عامة ومنوعات"
-]
-
-def ai_classify(channel_name):
-    name = channel_name.upper()
-    if any(w in name for w in ["CTV", "AGHAPY", "MESAT", "KARMA", "NOURSAT"]): return ALL_AVAILABLE_CATEGORIES[0]
-    if any(w in name for w in ["QURAN", "RAHMA", "MAJD", "MAKKA", "HAYAT"]): return ALL_AVAILABLE_CATEGORIES[1]
-    if any(w in name for w in ["MOSALSALAT", "DRAMA", "SERIES", "KHOLASA"]): return ALL_AVAILABLE_CATEGORIES[2]
-    if any(w in name for w in ["CINEMA", "ROTANA", "AFLAM", "MIX", "FOX", "MBC2", "ACTION", "RAMBO", "MISHMISH", "MOVIE"]): return ALL_AVAILABLE_CATEGORIES[3]
-    if any(w in name for w in ["SPACE TOON", "CN", "MAJID", "KIDS", "TOM"]): return ALL_AVAILABLE_CATEGORIES[4]
-    if any(w in name for w in ["SPORT", "ONTIME", "KASS", "AD_SPORTS"]): return ALL_AVAILABLE_CATEGORIES[5]
-    if any(w in name for w in ["NEWS", "JAZEERA", "ARABIYA", "HADATH", "CAIRO"]): return ALL_AVAILABLE_CATEGORIES[6]
-    return ALL_AVAILABLE_CATEGORIES[7]
-
-uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
-
-if uploaded_file is not None:
-    file_bytes = uploaded_file.read()
-    
-    try:
-        file_text_original = file_bytes.decode('utf-8')
-    except UnicodeDecodeError:
-        file_text_original = file_bytes.decode('latin-1')
-
-    root = ET.fromstring(file_bytes)
-    model_setting = root.find(".//ModelName")
-    model_name = model_setting.text if model_setting is not None else "Unknown LG TV"
-    
-    legacy_broadcast_tag = root.find(".//legacybroadcast")
-    is_modern = legacy_broadcast_tag is not None and legacy_broadcast_tag.text
-    
-    st.info(f"{t['success_read']} **{model_name}**")
-
-    # 💡 صندوق النصيحة الفنية لـ LG المستوحى من خبرة المستخدم
-    st.markdown(f"""
-        <div class="lg-trick-box">
-            <h4 style="color: #ff007f; margin-top:0;">{t['lg_trick_title']}</h4>
-            <p style="white-space: pre-line; margin-bottom:0; font-size:14px;">{t['lg_trick_text']}</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    col_opt1, col_opt2 = st.columns(2)
-    with col_opt1:
-        update_freq = st.checkbox(t['update_freq_label'], value=True)
-    with col_opt2:
-        add_new_channels = st.checkbox(t['add_new_ch_label'], value=True)
-
-    channels_to_sort = []
-    report_changes = []
-    injected_report = []
-    
-    detected_satellite = "Nilesat 7.0°W"
-    
-    # 1. فحص وتحديث الترددات وحقن القنوات "تبع النايل سات"
-    if is_modern:
-        broadcast_data = json.loads(legacy_broadcast_tag.text)
-        channels_list = broadcast_data.get("channelList", [])
-        
-        if add_new_channels:
-            for nch in NILESAT_NEW_CHANNELS:
-                new_node = {
-                    "channelName": nch["name"], "frequency": nch["frequency"], "polarization": nch["polarization"],
-                    "majorNumber": 0, "serviceType": "1", "scrambled": "false", "symbolRate": "27500"
-                }
-                channels_list.append(new_node)
-                injected_report.append({
-                    "اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]
-                })
-        
-        for idx, ch in enumerate(channels_list):
-            ch_name = ch.get("channelName", "Unknown")
-            old_freq = str(ch.get("frequency", "N/A"))
-            name_up = ch_name.upper()
-            
-            if update_freq and name_up in NILESAT_LIVE_DB:
-                live_freq = str(NILESAT_LIVE_DB[name_up]["frequency"])
-                if old_freq != live_freq:
-                    report_changes.append({
-                        "القناة": ch_name, 
-                        "الفئة (Category)": ai_classify(ch_name), 
-                        "التردد القديم": f"{old_freq} MHz", 
-                        "التردد الجديد": f"{live_freq} MHz",
-                        "تاريخ التحديث": NILESAT_LIVE_DB[name_up]["update_date"]
-                    })
-                    ch["frequency"] = int(live_freq)
-                    ch["polarization"] = NILESAT_LIVE_DB[name_up]["polarization"]
-                    old_freq = live_freq
-                    
-            channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_node": ch})
-    else:
-        # الموديل القديم (32 بوصة)
-        item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text_original, re.DOTALL)
-        
-        for idx, item_str in enumerate(item_blocks):
-            name_match = re.search(r'<vchName>(.*?)</vchName>', item_str)
-            freq_match = re.search(r'<frequency>(.*?)</frequency>', item_str)
-            ch_name = name_match.group(1) if name_match else "Unknown"
-            old_freq = freq_match.group(1) if freq_match else "N/A"
-            name_up = ch_name.upper()
-            
-            if update_freq and name_up in NILESAT_LIVE_DB:
-                live_freq = str(NILESAT_LIVE_DB[name_up]["frequency"])
-                if old_freq != live_freq:
-                    report_changes.append({
-                        "القناة": ch_name, 
-                        "الفئة (Category)": ai_classify(ch_name), 
-                        "التردد القديم": f"{old_freq} MHz", 
-                        "التردد الجديد": f"{live_freq} MHz",
-                        "تاريخ التحديث": NILESAT_LIVE_DB[name_up]["update_date"]
-                    })
-                    item_str = re.sub(r'<frequency>\d+</frequency>', f'<frequency>{live_freq}</frequency>', item_str)
-                    old_freq = live_freq
-                    
-            channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_str": item_str})
-
-        if add_new_channels:
-            for nch in NILESAT_NEW_CHANNELS:
-                new_item_raw = f"<ITEM>\r\n<prNum>0</prNum>\r\n<vchName>{nch['name']}</vchName>\r\n<frequency>{nch['frequency']}</frequency>\r\n<serviceType>1</serviceType>\r\n</ITEM>"
-                channels_to_sort.append({"id": len(channels_to_sort), "name": nch["name"], "freq": str(nch["frequency"]), "raw_str": new_item_raw})
-                injected_report.append({
-                    "اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]
-                })
-
-    # محرك البحث الذكي
-    st.write("---")
-    st.write(f"### {t['search_header']}")
-    search_query = st.text_input("", placeholder=t['search_placeholder']).strip().upper()
-    if search_query:
-        search_results = []
-        for idx, ch in enumerate(channels_to_sort, start=1):
-            if search_query in ch["name"].upper():
-                search_results.append({t['search_col_num']: idx, t['search_col_name']: ch["name"], t['search_col_cat']: ai_classify(ch["name"]), t['search_col_freq']: ch["freq"]})
-        if search_results: st.table(search_results)
-        else: st.warning(t['search_no_results'])
-
-    # مصفوفة الفئات المخصصة
-    st.write("---")
-    st.write(f"### {t['config_title']}")
-    user_priority = st.multiselect(t['multiselect_label'], options=ALL_AVAILABLE_CATEGORIES, default=[])
-    final_priority = list(user_priority)
-    for cat in ALL_AVAILABLE_CATEGORIES:
-        if cat not in final_priority: final_priority.append(cat)
-
-    # فرز القنوات الكلي بناءً على الفئة
-    channels_sorted = sorted(channels_to_sort, key=lambda x: final_priority.index(ai_classify(x["name"])))
-    
-    # المعاينة الحية للفئات
-    categorized = {}
-    for ch in channels_sorted:
-        cat = ai_classify(ch["name"])
-        if cat not in categorized: categorized[cat] = []
-        categorized[cat].append(ch["name"])
-
-    st.write("---")
-    st.write(f"### {t['preview_title']}")
-    col1, col2 = st.columns(2)
-    for i, cat_name in enumerate(final_priority):
-        if cat_name in categorized:
-            ch_list = categorized[cat_name]
-            target_col = col1 if i % 2 == 0 else col2
-            with target_col:
-                is_user_chosen = "⭐ " if cat_name in user_priority else ""
-                with st.expander(f"{is_user_chosen}{cat_name} — ({len(ch_list)} {t['channels_count']})"):
-                    st.write(", ".join(ch_list))
-
-    # عرض الجداول التفاعلية على الموقع
-    st.write("---")
-    if report_changes:
-        st.write(f"### 🔁 سجل صيانة وتحديث الترددات (مضافاً إليها الفئة وتاريخ التحديث) — تبع الـ {detected_satellite}:")
-        st.table(report_changes)
-        
-    if injected_report:
-        st.write(f"### 🆕 تقرير القنوات الجديدة المزروعة وتاريخ صدورها ومصدرها (مضافاً إليها التردد) — تبع الـ {detected_satellite}:")
-        st.table(injected_report)
-
-    # بناء التقارير والملفات النهائية للتحميل
-    text_report = f"{t['txt_header']} ({model_name})\n"
-    text_report += f"🛰️ القمر الصناعي المكتشف بواسطة الـ AI: {detected_satellite}\n"
-    text_report += "==================================================\n"
-    if report_changes:
-        text_report += f"\n🔁 [سجل صيانة وتحديث الترددات مضافاً إليها الفئة وتاريخ التحديث - تبع {detected_satellite}]:\n"
-        for change in report_changes:
-            text_report += f"- القناة: {change['القناة']:<20} | الفئة: {change['الفئة (Category)']:<20} | التردد: {change['التردد القديم']:<10} -> {change['التردد الجديد']:<10} | تاريخ التحديث: {change['تاريخ التحديث']}\n"
-    if injected_report:
-        text_report += f"\n🆕 [تقرير القنوات الجديدة المزروعة مضافاً إليها التردد - تبع {detected_satellite}]:\n"
-        for inch in injected_report:
-            text_report += f"- قناة: {inch['اسم القناة']:<20} | التردد: {inch['التردد']:<10} | تاريخ الصدور: {inch['تاريخ الصدور']:<12} | المصدر: {inch['المصدر']}\n"
-    text_report += "\n==================================================\n\n"
-    
-    if is_modern:
-        final_list_modern = []
-        for index, ch in enumerate(channels_sorted, start=1):
-            node = ch["raw_node"]
-            node["majorNumber"] = index
-            final_list_modern.append(node)
-            text_report += f"No. {index:03d} : {ch['name']:<25} | Freq: {ch['freq']}\n"
-        broadcast_data["channelList"] = final_list_modern
-        legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
-        final_xml_bytes = ET.tostring(root, encoding="utf-8")
-    else:
-        modified_text_output = file_text_original
-        item_strings_sorted = []
-        
-        for index, ch in enumerate(channels_sorted, start=1):
-            original_item_str = ch["raw_str"]
-            if "<prNum>" in original_item_str:
-                new_item_str = re.sub(r'<prNum>\d+</prNum>', f'<prNum>{index}</prNum>', original_item_str)
-            else:
-                new_item_str = original_item_str.replace("<ITEM>", f"<ITEM>\r\n<prNum>{index}</prNum>")
-            
-            item_strings_sorted.append(new_item_str)
-            text_report += f"No. {index:03d} : {ch['name']:<25} | Freq: {ch['freq']}\n"
-            
-        combined_items_str = "\r\n".join(item_strings_sorted)
-        start_idx = file_text_original.find("<ITEM>")
-        end_idx = file_text_original.rfind("</ITEM>") + len("</ITEM>")
-        
-        if start_idx != -1 and end_idx != -1:
-            final_text_output = file_text_original[:start_idx] + combined_items_str + file_text_original[end_idx:]
-        else:
-            final_text_output = combined_items_str
-            
+def load_persistent_brain():
+    db = get_base_2026_db()
+    if os.path.exists(BRAIN_FILE):
         try:
-            final_xml_bytes = final_text_output.encode('utf-8')
-        except UnicodeEncodeError:
-            final_xml_bytes = final_text_output.encode('latin-1')
+            with open(BRAIN_FILE, "r", encoding="utf-8") as f:
+                db.update(json.load(f))
+        except Exception:
+            pass
+    return db
 
-    st.write("---")
+def save_persistent_brain(db):
+    try:
+        with open(BRAIN_FILE, "w", encoding="utf-8") as f:
+            json.dump(db, f, ensure_ascii=False, indent=4)
+    except Exception:
+        pass
+
+MASTER_2026_DB = load_persistent_brain()
+TODAY_STR = "2026-05-25"
+TODAY_DT  = datetime.strptime(TODAY_STR, "%Y-%m-%d")
+
+ALL_CATEGORIES = [
+    "⛪ قنوات مسيحية",
+    "🕌 قنوات إسلامية",
+    "🎬 مسلسلات ودراما",
+    "🍿 أفلام عربية وأجنبية",
+    "👶 أطفال وكرتون",
+    "⚽ رياضة",
+    "📰 أخبار وسياسة",
+    "📺 قنوات عامة ومنوعات",
+]
+
+# ══════════════════════════════════════════════════════════════
+#  عدادات الرادار
+# ══════════════════════════════════════════════════════════════
+ch_today = ch_week = 0
+for v in MASTER_2026_DB.values():
+    try:
+        delta = (TODAY_DT - datetime.strptime(v.get("date", TODAY_STR), "%Y-%m-%d")).days
+        if delta == 0: ch_today += 1
+        if delta <= 7: ch_week  += 1
+    except Exception:
+        pass
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.markdown(f"""<div class="cyber-metric-card">
+        <div class="metric-label">🌟 رُصدت اليوم</div>
+        <div class="metric-num" style="color:{PINK};">{ch_today}</div>
+    </div>""", unsafe_allow_html=True)
+with col2:
+    st.markdown(f"""<div class="cyber-metric-card">
+        <div class="metric-label">⚡ آخر 7 أيام</div>
+        <div class="metric-num" style="color:{CYAN};">{ch_week}</div>
+    </div>""", unsafe_allow_html=True)
+with col3:
+    st.markdown(f"""<div class="cyber-metric-card">
+        <div class="metric-label">📦 إجمالي البنك</div>
+        <div class="metric-num" style="color:{GREEN};">{len(MASTER_2026_DB)}</div>
+    </div>""", unsafe_allow_html=True)
+
+st.write("")
+
+# ══════════════════════════════════════════════════════════════
+#  محرك البحث والرادار
+# ══════════════════════════════════════════════════════════════
+st.markdown(f"### {t['search_header']}")
+
+col_s, col_t, col_c = st.columns([5, 3, 3])
+with col_s:
+    search_q = st.text_input("", placeholder=t['search_placeholder'], key="radar_search").strip().upper()
+with col_t:
+    time_filter = st.selectbox("📅 النطاق الزمني:", ["كل الترددات","حصريات اليوم","آخر 7 أيام","مايو 2026"])
+with col_c:
+    cats_list = ["كل الفئات"] + list(dict.fromkeys(v.get("category","📺 قنوات عامة ومنوعات") for v in MASTER_2026_DB.values()))
+    cat_filter = st.selectbox("🗂️ الفئة:", cats_list)
+
+rows = []
+for ch_name, info in MASTER_2026_DB.items():
+    ch_cat  = info.get("category","📺 قنوات عامة ومنوعات")
+    ch_date = info.get("date", TODAY_STR)
+    ch_freq = f"{info['frequency']} MHz ({info['polarization'][0]})"
+    ch_src  = info.get("source","Live Feed")
+    if search_q and not any(search_q in x for x in [ch_name, ch_freq, ch_src.upper(), ch_date]):
+        continue
+    if cat_filter != "كل الفئات" and ch_cat != cat_filter:
+        continue
+    try:
+        diff = (TODAY_DT - datetime.strptime(ch_date, "%Y-%m-%d")).days
+        if time_filter == "حصريات اليوم" and diff != 0: continue
+        if time_filter == "آخر 7 أيام"   and diff > 7:  continue
+        if time_filter == "مايو 2026"     and not ch_date.startswith("2026-05"): continue
+    except Exception:
+        pass
+    rows.append({
+        "حالة الرصد":    "🌟 اليوم" if ch_date == TODAY_STR else "🟢 نشط",
+        "اسم القناة":    ch_name,
+        "التردد 2026":   ch_freq,
+        "الفئة":         ch_cat,
+        "تاريخ التحديث": ch_date,
+        "المصدر":        ch_src,
+    })
+
+if rows:
+    st.dataframe(rows, use_container_width=True)
+else:
+    st.warning("⚠️ لا توجد ترددات مطابقة للفلاتر الحالية.")
+
+st.write("---")
+
+# ══════════════════════════════════════════════════════════════
+#  تصنيف AI
+# ══════════════════════════════════════════════════════════════
+def ai_classify(name: str) -> str:
+    n = name.upper().strip()
+    if n in MASTER_2026_DB and "category" in MASTER_2026_DB[n]:
+        return MASTER_2026_DB[n]["category"]
+    checks = [
+        (["CTV","AGHAPY","ME SAT","MESAT","MARMARKOS","KOOGI","SAT-7"], ALL_CATEGORIES[0]),
+        (["QURAN","RAHMA","MAJD"],                                       ALL_CATEGORIES[1]),
+        (["DRAMA","SERIES","ALWAN"],                                     ALL_CATEGORIES[2]),
+        (["CINEMA","ROTANA","AFLAM","MIX ONE","MBC2","ACTION"],          ALL_CATEGORIES[3]),
+        (["SPACE TOON","MBC3","MAJID","WANNASAH"],                       ALL_CATEGORIES[4]),
+        (["SPORT","ONTIME","BEIN"],                                      ALL_CATEGORIES[5]),
+        (["NEWS","JAZEERA","ARABIYA","CAIRO"],                           ALL_CATEGORIES[6]),
+    ]
+    for keywords, cat in checks:
+        if any(w in n for w in keywords):
+            return cat
+    return ALL_CATEGORIES[7]
+
+# ══════════════════════════════════════════════════════════════
+#  🆕 قراءة ملف الترتيب TXT/CSV
+#  الفورمات المدعوم (كل سطر):
+#    اسم_القناة
+#    اسم_القناة,تردد
+#    اسم_القناة,تردد,فئة
+#    اسم_القناة,تردد,فئة,استقطاب
+# ══════════════════════════════════════════════════════════════
+def parse_sort_txt(file_bytes: bytes) -> list[dict]:
+    """
+    يقرأ ملف نص ويرجع قائمة مرتبة من dict:
+      { name, frequency(int|None), category(str|None), polarization(str|None), source }
+    """
+    try:
+        text = file_bytes.decode("utf-8")
+    except UnicodeDecodeError:
+        text = file_bytes.decode("latin-1")
+
+    result = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):      # تجاهل التعليقات والأسطر الفارغة
+            continue
+        # دعم الفاصلة أو الفاصلة المنقوطة أو التاب
+        parts = re.split(r'[,;\t]', line)
+        name = parts[0].strip().upper()
+        if not name:
+            continue
+
+        freq    = None
+        cat     = None
+        pol     = None
+
+        if len(parts) >= 2:
+            freq_raw = parts[1].strip()
+            if freq_raw.isdigit():
+                freq = int(freq_raw)
+
+        if len(parts) >= 3:
+            cat_raw = parts[2].strip()
+            if cat_raw:
+                cat = cat_raw
+
+        if len(parts) >= 4:
+            pol_raw = parts[3].strip().capitalize()
+            if pol_raw in ("Vertical", "Horizontal"):
+                pol = pol_raw
+
+        result.append({
+            "name":         name,
+            "frequency":    freq,
+            "category":     cat,
+            "polarization": pol,
+            "source":       "Sort File",
+        })
+    return result
+
+
+def build_template_csv() -> bytes:
+    """ينشئ قالب CSV للمستخدم."""
+    lines = [
+        "# قالب RAMBO ULTRA - ملف الترتيب والترددات",
+        "# الفورمات: اسم_القناة,تردد,فئة,استقطاب",
+        "# التردد والفئة والاستقطاب اختيارية - يمكن ترك الأعمدة فارغة",
+        "# مثال:",
+        "CTV HD,12022,⛪ قنوات مسيحية,Vertical",
+        "AGHAPY TV,11179,⛪ قنوات مسيحية,Vertical",
+        "EGYPT QURAN,11179,🕌 قنوات إسلامية,Vertical",
+        "MBC1 HD,11938,📺 قنوات عامة ومنوعات,Vertical",
+        "MBC DRAMA HD,11938,🎬 مسلسلات ودراما,Vertical",
+        "ON TIME SPORTS 1 HD,11861,⚽ رياضة,Vertical",
+        "BEIN SPORTS HD1,12226,⚽ رياضة,Horizontal",
+        "AL JAZEERA HD,11938,📰 أخبار وسياسة,Horizontal",
+        "WANNASAH HD,11938,👶 أطفال وكرتون,Vertical",
+        "ROTANA CINEMA,11843,🍿 أفلام عربية وأجنبية,Horizontal",
+    ]
+    return "\n".join(lines).encode("utf-8-sig")
+
+# ══════════════════════════════════════════════════════════════
+#  الـ Sidebar
+# ══════════════════════════════════════════════════════════════
+st.sidebar.markdown(f"### {t['mode_selector']}")
+app_mode = st.sidebar.radio("", [t['mode_edit'], t['mode_gen']])
+
+# ── رفع ملف الترتيب (مشترك بين الوضعين) ──────────────────────
+st.sidebar.markdown("---")
+st.sidebar.markdown(f"### {t['upload_txt_label']}")
+st.sidebar.caption(t['upload_txt_help'])
+sort_file = st.sidebar.file_uploader("", type=["txt","csv"], key="sort_uploader")
+
+# قالب جاهز للتحميل
+st.sidebar.download_button(
+    label     = t['txt_download_template'],
+    data      = build_template_csv(),
+    file_name = "rambo_sort_template.csv",
+    mime      = "text/csv",
+)
+
+# معالجة ملف الترتيب
+sort_list: list[dict] = []  # القائمة المرتبة من الملف (فارغة = لا يوجد ملف)
+sort_names_ordered: list[str] = []  # أسماء القنوات بالترتيب (uppercase)
+
+if sort_file is not None:
+    sort_bytes = sort_file.read()
+    sort_list  = parse_sort_txt(sort_bytes)
+    sort_names_ordered = [ch["name"] for ch in sort_list]
+
+    # تطبيق الترددات والفئات من الملف على البنك الحي
+    updated_from_file = 0
+    for entry in sort_list:
+        nm = entry["name"]
+        if nm not in MASTER_2026_DB:
+            MASTER_2026_DB[nm] = {
+                "frequency":    entry["frequency"] or 0,
+                "polarization": entry["polarization"] or "Vertical",
+                "date":         TODAY_STR,
+                "source":       "Sort File",
+                "category":     entry["category"] or ai_classify(nm),
+            }
+            updated_from_file += 1
+        else:
+            # تردد الملف يطغى دائماً
+            if entry["frequency"]:
+                MASTER_2026_DB[nm]["frequency"]    = entry["frequency"]
+                MASTER_2026_DB[nm]["polarization"] = entry["polarization"] or MASTER_2026_DB[nm].get("polarization","Vertical")
+                updated_from_file += 1
+            if entry["category"]:
+                MASTER_2026_DB[nm]["category"] = entry["category"]
+
+    save_persistent_brain(MASTER_2026_DB)
+
+    # عرض معاينة في Sidebar
+    st.sidebar.success(t['txt_stats'].format(len(sort_list)))
+
+    # معاينة تفصيلية في الصفحة الرئيسية
+    with st.expander(t['txt_preview_header'], expanded=False):
+        preview_rows = []
+        for i, entry in enumerate(sort_list, 1):
+            nm  = entry["name"]
+            eff_freq = entry["frequency"] or MASTER_2026_DB.get(nm, {}).get("frequency", "—")
+            eff_cat  = entry["category"]  or MASTER_2026_DB.get(nm, {}).get("category",  ai_classify(nm))
+            eff_pol  = entry["polarization"] or MASTER_2026_DB.get(nm, {}).get("polarization", "—")
+            src_tag  = "📋 ملف" if entry["frequency"] else "🏦 بنك"
+            preview_rows.append({
+                "#":      i,
+                "القناة": nm,
+                "التردد": f"{eff_freq} ({str(eff_pol)[0] if eff_pol != '—' else '?'})",
+                "الفئة":  eff_cat,
+                "مصدر التردد": src_tag,
+            })
+        st.dataframe(preview_rows, use_container_width=True)
+        st.caption(f"📋 {len(sort_list)} قناة | 📋 تردد الملف يطغى على البنك 2026")
+
+file_processed      = False
+file_bytes_out      = b""
+unique_channels_map = {}
+database_needs_save = False
+is_modern           = False   # تعريف مبكر لتجنب أخطاء scope
+
+# ══════════════════════════════════════════════════════════════
+#  وضع التعديل
+# ══════════════════════════════════════════════════════════════
+if app_mode == t['mode_edit']:
+    uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
+
+    if uploaded_file is not None:
+        file_bytes = uploaded_file.read()
+        try:
+            file_text = file_bytes.decode('utf-8')
+        except UnicodeDecodeError:
+            file_text = file_bytes.decode('latin-1')
+
+        root       = ET.fromstring(file_bytes)
+        legacy_tag = root.find(".//legacybroadcast")
+        is_modern  = legacy_tag is not None and legacy_tag.text
+
+        enforce_2026 = st.checkbox(t['update_freq_label'], value=True)
+        inject_excl  = st.checkbox(t['add_new_ch_label'],  value=True)
+
+        if is_modern:
+            broadcast_data = json.loads(legacy_tag.text)
+            uploaded_list  = broadcast_data.get("channelList", [])
+
+            for c in uploaded_list:
+                name_up = c.get("channelName","").strip().upper()
+                freq_up = c.get("frequency", 0)
+                pol_up  = c.get("polarization","Horizontal")
+                if name_up and freq_up > 0:
+                    if name_up not in MASTER_2026_DB or MASTER_2026_DB[name_up]["frequency"] != int(freq_up):
+                        MASTER_2026_DB[name_up] = {
+                            "frequency":    int(freq_up),
+                            "polarization": pol_up,
+                            "date":         TODAY_STR,
+                            "source":       "User Flash Injection",
+                            "category":     ai_classify(name_up),
+                        }
+                        database_needs_save = True
+
+            for idx, ch in enumerate(uploaded_list):
+                ch_name = ch.get("channelName","").strip()
+                name_up = ch_name.upper()
+                if not name_up:
+                    continue
+                # الأولوية: تردد ملف الترتيب ← بنك 2026 (إذا enforce) ← الأصلي
+                if name_up in sort_names_ordered and MASTER_2026_DB.get(name_up,{}).get("frequency"):
+                    ch["frequency"]    = MASTER_2026_DB[name_up]["frequency"]
+                    ch["polarization"] = MASTER_2026_DB[name_up]["polarization"]
+                elif enforce_2026 and name_up in MASTER_2026_DB:
+                    ch["frequency"]    = int(MASTER_2026_DB[name_up]["frequency"])
+                    ch["polarization"] = MASTER_2026_DB[name_up]["polarization"]
+                unique_channels_map[name_up] = {
+                    "id": idx, "name": ch_name,
+                    "freq": str(ch["frequency"]), "raw_node": ch,
+                }
+        else:
+            item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text, re.DOTALL)
+            for item_str in item_blocks:
+                nm = re.search(r'<vchName>(.*?)</vchName>', item_str)
+                fr = re.search(r'<frequency>(.*?)</frequency>', item_str)
+                if nm and fr:
+                    name_up = nm.group(1).strip().upper()
+                    freq_up = fr.group(1).strip()
+                    if name_up and freq_up.isdigit():
+                        if name_up not in MASTER_2026_DB or MASTER_2026_DB[name_up]["frequency"] != int(freq_up):
+                            MASTER_2026_DB[name_up] = {
+                                "frequency":    int(freq_up),
+                                "polarization": "Vertical",
+                                "date":         TODAY_STR,
+                                "source":       "User Legacy Flash",
+                                "category":     ai_classify(name_up),
+                            }
+                            database_needs_save = True
+
+            for idx, item_str in enumerate(item_blocks):
+                nm = re.search(r'<vchName>(.*?)</vchName>', item_str)
+                fr = re.search(r'<frequency>(.*?)</frequency>', item_str)
+                if not nm:
+                    continue
+                ch_name = nm.group(1).strip()
+                name_up = ch_name.upper()
+                old_freq = fr.group(1).strip() if fr else "0"
+                if name_up in sort_names_ordered and MASTER_2026_DB.get(name_up,{}).get("frequency"):
+                    vf = MASTER_2026_DB[name_up]["frequency"]
+                    item_str = re.sub(r'<frequency>\d+</frequency>', f'<frequency>{vf}</frequency>', item_str)
+                    old_freq = str(vf)
+                elif enforce_2026 and name_up in MASTER_2026_DB:
+                    vf = MASTER_2026_DB[name_up]["frequency"]
+                    item_str = re.sub(r'<frequency>\d+</frequency>', f'<frequency>{vf}</frequency>', item_str)
+                    old_freq = str(vf)
+                unique_channels_map[name_up] = {
+                    "id": idx, "name": ch_name,
+                    "freq": old_freq, "raw_str": item_str,
+                }
+
+        if database_needs_save:
+            save_persistent_brain(MASTER_2026_DB)
+            st.toast("📡 تم حفظ الترددات الجديدة في بنك البيانات!", icon="🧠")
+
+        st.success(t['success_read'] + ("Smart webOS" if is_modern else "Legacy"))
+        file_processed = True
+
+# ══════════════════════════════════════════════════════════════
+#  وضع التوليد
+# ══════════════════════════════════════════════════════════════
+else:
+    col_m, col_c2 = st.columns(2)
+    with col_m:
+        model_choice = st.selectbox(t['model_label'], [t['model_modern'], t['model_legacy']])
+    with col_c2:
+        country_choice = st.selectbox(t['country_label'], [t['country_egy'], t['country_ksa']])
+
+    country_code = "NAFR" if "Egypt" in country_choice or "مصر" in country_choice else "MIDE"
+
+    if st.button(t['btn_generate']):
+        st.session_state.generated_active = True
+
+    if st.session_state.get('generated_active'):
+        # إذا فيه ملف ترتيب: رتّب بحسبه، وأضف الباقيين في النهاية
+        source_db = dict(MASTER_2026_DB)
+        ordered_keys = []
+        if sort_names_ordered:
+            for nm in sort_names_ordered:
+                if nm in source_db:
+                    ordered_keys.append(nm)
+            # الباقي اللي مش في ملف الترتيب
+            for nm in source_db:
+                if nm not in ordered_keys:
+                    ordered_keys.append(nm)
+        else:
+            ordered_keys = list(source_db.keys())
+
+        for idx, ch_name in enumerate(ordered_keys):
+            data = source_db[ch_name]
+            unique_channels_map[ch_name] = {
+                "id":   idx,
+                "name": ch_name,
+                "freq": str(data["frequency"]),
+                "raw_node": {
+                    "channelName":  ch_name,
+                    "frequency":    data["frequency"],
+                    "polarization": data["polarization"],
+                    "majorNumber":  0,
+                    "serviceType":  "1",
+                    "scrambled":    "false",
+                    "symbolRate":   "27500",
+                },
+            }
+        file_processed = True
+        is_modern      = t['model_modern'] in model_choice
+        st.success(t['success_gen'] + country_code)
+
+# ══════════════════════════════════════════════════════════════
+#  بناء الملف النهائي وتحميله
+# ══════════════════════════════════════════════════════════════
+if file_processed and unique_channels_map:
+    st.markdown(f"""<div class="lg-tip-box">
+        <strong>💡 {t['lg_trick_title']}</strong>{t['lg_trick_text']}
+    </div>""", unsafe_allow_html=True)
+
+    # ── ترتيب القنوات ─────────────────────────────────────────
+    if sort_names_ordered:
+        # الترتيب من ملف TXT: القنوات الموجودة في الملف أولاً بترتيبها،
+        # ثم الباقيات مرتبة بالفئة من multiselect
+        user_priority = st.multiselect(
+            t['multiselect_label'],
+            options=ALL_CATEGORIES,
+            default=[],
+            help="يُطبَّق فقط على القنوات غير الموجودة في ملف الترتيب"
+        )
+        final_priority = list(user_priority) + [c for c in ALL_CATEGORIES if c not in user_priority]
+
+        in_sort   = [ch for nm, ch in unique_channels_map.items() if nm in sort_names_ordered]
+        out_sort  = [ch for nm, ch in unique_channels_map.items() if nm not in sort_names_ordered]
+
+        # رتّب in_sort بحسب ترتيب ملف TXT
+        in_sort.sort(key=lambda x: sort_names_ordered.index(x["name"].upper())
+                     if x["name"].upper() in sort_names_ordered else 9999)
+        # رتّب out_sort بالفئة
+        out_sort.sort(key=lambda x: final_priority.index(ai_classify(x["name"])))
+
+        sorted_channels = in_sort + out_sort
+        st.info(f"📋 {len(in_sort)} قناة مرتبة من ملف الترتيب + {len(out_sort)} قناة مرتبة بالفئة")
+    else:
+        user_priority = st.multiselect(t['multiselect_label'], options=ALL_CATEGORIES, default=[])
+        final_priority = list(user_priority) + [c for c in ALL_CATEGORIES if c not in user_priority]
+        sorted_channels = sorted(
+            unique_channels_map.values(),
+            key=lambda x: final_priority.index(ai_classify(x["name"]))
+        )
+
+    # ── بناء الملف ────────────────────────────────────────────
+    if app_mode == t['mode_edit'] and is_modern:
+        final_list = []
+        for i, ch in enumerate(sorted_channels, 1):
+            node = ch["raw_node"]
+            node["majorNumber"] = i
+            final_list.append(node)
+        broadcast_data["channelList"] = final_list
+        legacy_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
+        file_bytes_out = ET.tostring(root, encoding="utf-8")
+    else:
+        items_out = []
+        for i, ch in enumerate(sorted_channels, 1):
+            if "raw_str" in ch:
+                s = ch["raw_str"]
+                s = re.sub(r'<prNum>\d+</prNum>', f'<prNum>{i}</prNum>', s) \
+                    if "<prNum>" in s \
+                    else s.replace("<ITEM>", f"<ITEM>\r\n<prNum>{i}</prNum>")
+                items_out.append(s)
+            else:
+                node = ch["raw_node"]
+                items_out.append(
+                    f"<ITEM>\r\n<prNum>{i}</prNum>\r\n"
+                    f"<vchName>{node['channelName']}</vchName>\r\n"
+                    f"<frequency>{node['frequency']}</frequency>\r\n"
+                    f"<polarization>{node['polarization']}</polarization>\r\n"
+                    f"</ITEM>"
+                )
+        file_bytes_out = "\r\n".join(items_out).encode("utf-8")
+
     st.success(t['ready_msg'])
-    
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        st.download_button(label=t['btn_download_tll'], data=final_xml_bytes, file_name="GlobalClone00001.TLL", mime="application/octet-stream")
-    with col_btn2:
-        st.download_button(label=t['btn_download_txt'], data=text_report, file_name="Channels_List.txt", mime="text/plain; charset=utf-8")
+    st.download_button(
+        label     = t['btn_download_tll'],
+        data      = file_bytes_out,
+        file_name = "GlobalClone00001.TLL",
+        mime      = "application/octet-stream",
+    )
+    st.caption(f"📊 {len(sorted_channels)} {t['channels_count']}")
 
-# الفوتر السيبراني
-whatsapp_url = "https://api.whatsapp.com/send?phone=201280339779&text=Hello%20Developer%20Rafik%20Rambo%2C%20I%20have%20an%20inquiry%20regarding%20your%20LG%20TV%20Sorter%20script%3A"
-st.markdown(f"""
-    <div class="futuristic-cyber-footer">
-        <div class="footer-dev">🛠️ DEVELOPER ENG: RAFIK NATHAN</div>
-        <div class="footer-item">📱 <b>MOBILE / الموبايل:</b> +201280339779</div>
-        <div class="footer-item">✉️ <b>E-MAIL / البريد الإلكتروني:</b> rafikrambo113@gmail.com</div>
-        <a href="{whatsapp_url}" target="_blank" class="cyber-whatsapp-btn">WhatsApp Web</a>
-    </div>
+# ── Footer ─────────────────────────────────────────────────────
+st.markdown("""
+<div class="cyber-footer">
+    <div style="font-size:15px;font-weight:700;color:#ff0066;">🛠️ DEVELOPER ENG: RAFIK NATHAN</div>
+    <div style="font-size:12px;color:#7090aa;margin-top:4px;">📱 +201280339779 &nbsp;|&nbsp; rafikrambo113@gmail.com</div>
+</div>
 """, unsafe_allow_html=True)
