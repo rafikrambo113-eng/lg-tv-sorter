@@ -67,9 +67,9 @@ UI_TEXT = {
     }
 }
 
-t = UI_TEXT[st.session_state.lang]
-
 st.set_page_config(page_title="RAMBO - LG Futuristic AI Sorter", page_icon="⚡", layout="wide")
+
+t = UI_TEXT[st.session_state.lang]
 
 # لوحة التحكم العلوية للغات والثيمات
 col_lang, col_theme, _ = st.columns([1.2, 1.5, 8])
@@ -153,13 +153,13 @@ ALL_AVAILABLE_CATEGORIES = [
 
 def ai_classify(channel_name):
     name = channel_name.upper()
-    if any(w in name for w in ["CTV", "AGHAPY", "MESAT", "KARMA", "NOURSAT"]): return ALL_AVAILABLE_CATEGORIES[0]
-    if any(w in name for w in ["QURAN", "RAHMA", "MAJD", "MAKKA", "HAYAT"]): return ALL_AVAILABLE_CATEGORIES[1]
-    if any(w in name for w in ["MOSALSALAT", "DRAMA", "SERIES", "KHOLASA"]): return ALL_AVAILABLE_CATEGORIES[2]
-    if any(w in name for w in ["CINEMA", "ROTANA", "AFLAM", "MIX", "FOX", "MBC2", "ACTION", "RAMBO", "MISHMISH", "MOVIE"]): return ALL_AVAILABLE_CATEGORIES[3]
-    if any(w in name for w in ["SPACE TOON", "CN", "MAJID", "KIDS", "TOM"]): return ALL_AVAILABLE_CATEGORIES[4]
-    if any(w in name for w in ["SPORT", "ONTIME", "KASS", "AD_SPORTS"]): return ALL_AVAILABLE_CATEGORIES[5]
-    if any(w in name for w in ["NEWS", "JAZEERA", "ARABIYA", "HADATH", "CAIRO"]): return ALL_AVAILABLE_CATEGORIES[6]
+    if any(w in name for w in ["CTV", "AGHAPY", "MESAT", "KARMA", "NOURSAT", "COPTIC"]): return ALL_AVAILABLE_CATEGORIES[0]
+    if any(w in name for w in ["QURAN", "RAHMA", "MAJD", "MAKKA", "HAYAT", "SUNNAH"]): return ALL_AVAILABLE_CATEGORIES[1]
+    if any(w in name for w in ["MOSALSALAT", "DRAMA", "SERIES", "KHOLASA", "ZEE ALWAN", "SHAHID"]): return ALL_AVAILABLE_CATEGORIES[2]
+    if any(w in name for w in ["CINEMA", "ROTANA", "AFLAM", "MIX", "FOX", "MBC2", "ACTION", "RAMBO", "MISHMISH", "MOVIE", "B4U", "TOP MOVIES"]): return ALL_AVAILABLE_CATEGORIES[3]
+    if any(w in name for w in ["SPACE TOON", "CN", "MAJID", "KIDS", "TOM", "DISNEY", "NICKELODEON"]): return ALL_AVAILABLE_CATEGORIES[4]
+    if any(w in name for w in ["SPORT", "ONTIME", "KASS", "AD_SPORTS", "BIEN", "AL AHLY", "ZAMALEK"]): return ALL_AVAILABLE_CATEGORIES[5]
+    if any(w in name for w in ["NEWS", "JAZEERA", "ARABIYA", "HADATH", "CAIRO", "CBC EXTRA", "SKY"]): return ALL_AVAILABLE_CATEGORIES[6]
     return ALL_AVAILABLE_CATEGORIES[7]
 
 uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
@@ -170,9 +170,14 @@ if uploaded_file is not None:
     try:
         file_text_original = file_bytes.decode('utf-8')
     except UnicodeDecodeError:
-        file_text_original = file_bytes.decode('latin-1')
+        file_text_original = file_bytes.decode('latin-1', errors='replace')
 
-    root = ET.fromstring(file_bytes)
+    try:
+        root = ET.fromstring(file_bytes)
+    except ET.ParseError:
+        # حماية إضافية في حالة وجود رموز غريبة ببعض ملفات الـ TLL القديمة
+        root = ET.fromstring(file_text_original.encode('utf-8', errors='ignore'))
+
     model_setting = root.find(".//ModelName")
     model_name = model_setting.text if model_setting is not None else "Unknown LG TV"
     
@@ -181,7 +186,7 @@ if uploaded_file is not None:
     
     st.info(f"{t['success_read']} **{model_name}**")
 
-    # 💡 صندوق النصيحة الفنية لـ LG المستوحى من خبرة المستخدم
+    # صندوق النصيحة الفنية لـ LG
     st.markdown(f"""
         <div class="lg-trick-box">
             <h4 style="color: #ff007f; margin-top:0;">{t['lg_trick_title']}</h4>
@@ -198,7 +203,6 @@ if uploaded_file is not None:
     channels_to_sort = []
     report_changes = []
     injected_report = []
-    
     detected_satellite = "Nilesat 7.0°W"
     
     # 1. فحص وتحديث الترددات وحقن القنوات "تبع النايل سات"
@@ -206,16 +210,20 @@ if uploaded_file is not None:
         broadcast_data = json.loads(legacy_broadcast_tag.text)
         channels_list = broadcast_data.get("channelList", [])
         
+        # مصفوفة فحص الأسماء الموجودة بالفعل لمنع التكرار
+        existing_names = {ch.get("channelName", "").upper() for ch in channels_list}
+        
         if add_new_channels:
             for nch in NILESAT_NEW_CHANNELS:
-                new_node = {
-                    "channelName": nch["name"], "frequency": nch["frequency"], "polarization": nch["polarization"],
-                    "majorNumber": 0, "serviceType": "1", "scrambled": "false", "symbolRate": "27500"
-                }
-                channels_list.append(new_node)
-                injected_report.append({
-                    "اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]
-                })
+                if nch["name"].upper() not in existing_names:
+                    new_node = {
+                        "channelName": nch["name"], "frequency": nch["frequency"], "polarization": nch["polarization"],
+                        "majorNumber": 0, "serviceType": "1", "scrambled": "false", "symbolRate": "27500"
+                    }
+                    channels_list.append(new_node)
+                    injected_report.append({
+                        "اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]
+                    })
         
         for idx, ch in enumerate(channels_list):
             ch_name = ch.get("channelName", "Unknown")
@@ -238,8 +246,9 @@ if uploaded_file is not None:
                     
             channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_node": ch})
     else:
-        # الموديل القديم (32 بوصة)
+        # الموديل القديم (32 بوصة مثلاً)
         item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text_original, re.DOTALL)
+        existing_names = set()
         
         for idx, item_str in enumerate(item_blocks):
             name_match = re.search(r'<vchName>(.*?)</vchName>', item_str)
@@ -247,6 +256,7 @@ if uploaded_file is not None:
             ch_name = name_match.group(1) if name_match else "Unknown"
             old_freq = freq_match.group(1) if freq_match else "N/A"
             name_up = ch_name.upper()
+            existing_names.add(name_up)
             
             if update_freq and name_up in NILESAT_LIVE_DB:
                 live_freq = str(NILESAT_LIVE_DB[name_up]["frequency"])
@@ -265,11 +275,12 @@ if uploaded_file is not None:
 
         if add_new_channels:
             for nch in NILESAT_NEW_CHANNELS:
-                new_item_raw = f"<ITEM>\r\n<prNum>0</prNum>\r\n<vchName>{nch['name']}</vchName>\r\n<frequency>{nch['frequency']}</frequency>\r\n<serviceType>1</serviceType>\r\n</ITEM>"
-                channels_to_sort.append({"id": len(channels_to_sort), "name": nch["name"], "freq": str(nch["frequency"]), "raw_str": new_item_raw})
-                injected_report.append({
-                    "اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]
-                })
+                if nch["name"].upper() not in existing_names:
+                    new_item_raw = f"<ITEM>\r\n<prNum>0</prNum>\r\n<vchName>{nch['name']}</vchName>\r\n<frequency>{nch['frequency']}</frequency>\r\n<serviceType>1</serviceType>\r\n</ITEM>"
+                    channels_to_sort.append({"id": len(channels_to_sort), "name": nch["name"], "freq": str(nch["frequency"]), "raw_str": new_item_raw})
+                    injected_report.append({
+                        "اسم القناة": nch["name"], "التردد": f"{nch['frequency']} MHz", "تاريخ الصدور": nch["launch_date"], "المصدر": nch["source"]
+                    })
 
     # محرك البحث الذكي
     st.write("---")
@@ -280,8 +291,10 @@ if uploaded_file is not None:
         for idx, ch in enumerate(channels_to_sort, start=1):
             if search_query in ch["name"].upper():
                 search_results.append({t['search_col_num']: idx, t['search_col_name']: ch["name"], t['search_col_cat']: ai_classify(ch["name"]), t['search_col_freq']: ch["freq"]})
-        if search_results: st.table(search_results)
-        else: st.warning(t['search_no_results'])
+        if search_results: 
+            st.table(search_results)
+        else: 
+            st.warning(t['search_no_results'])
 
     # مصفوفة الفئات المخصصة
     st.write("---")
@@ -289,16 +302,18 @@ if uploaded_file is not None:
     user_priority = st.multiselect(t['multiselect_label'], options=ALL_AVAILABLE_CATEGORIES, default=[])
     final_priority = list(user_priority)
     for cat in ALL_AVAILABLE_CATEGORIES:
-        if cat not in final_priority: final_priority.append(cat)
+        if cat not in final_priority: 
+            final_priority.append(cat)
 
-    # فرز القنوات الكلي بناءً على الفئة
+    # فرز القنوات الكلي بناءً على الفئة المختارة
     channels_sorted = sorted(channels_to_sort, key=lambda x: final_priority.index(ai_classify(x["name"])))
     
     # المعاينة الحية للفئات
     categorized = {}
     for ch in channels_sorted:
         cat = ai_classify(ch["name"])
-        if cat not in categorized: categorized[cat] = []
+        if cat not in categorized: 
+            categorized[cat] = []
         categorized[cat].append(ch["name"])
 
     st.write("---")
@@ -348,9 +363,7 @@ if uploaded_file is not None:
         legacy_broadcast_tag.text = json.dumps(broadcast_data, ensure_ascii=False)
         final_xml_bytes = ET.tostring(root, encoding="utf-8")
     else:
-        modified_text_output = file_text_original
         item_strings_sorted = []
-        
         for index, ch in enumerate(channels_sorted, start=1):
             original_item_str = ch["raw_str"]
             if "<prNum>" in original_item_str:
@@ -370,10 +383,7 @@ if uploaded_file is not None:
         else:
             final_text_output = combined_items_str
             
-        try:
-            final_xml_bytes = final_text_output.encode('utf-8')
-        except UnicodeEncodeError:
-            final_xml_bytes = final_text_output.encode('latin-1')
+        final_xml_bytes = final_text_output.encode('utf-8', errors='replace')
 
     st.write("---")
     st.success(t['ready_msg'])
