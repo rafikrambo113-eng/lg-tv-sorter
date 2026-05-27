@@ -2,175 +2,173 @@ import streamlit as st
 import xml.etree.ElementTree as ET
 import json
 import re
-import streamlit.components.v1 as components
 
-# Session state
-if 'lang' not in st.session_state:
-    st.session_state.lang = 'ar'
-if 'theme' not in st.session_state:
-    st.session_state.theme = 'dark'
+st.set_page_config(page_title="Web ChanSort Lite", layout="wide")
 
-UI_TEXT = {
-    'ar': {
-        'title': "📺 RAMBO - LG Channel Sorter",
-        'subtitle': "AI Channel Manager"
-    },
-    'en': {
-        'title': "📺 RAMBO - LG Channel Sorter",
-        'subtitle': "AI Channel Manager"
-    }
-}
+# ======================
+# STATE
+# ======================
+if "channels" not in st.session_state:
+    st.session_state.channels = []
 
-t = UI_TEXT[st.session_state.lang]
+if "order" not in st.session_state:
+    st.session_state.order = []
 
-st.set_page_config(page_title="RAMBO", layout="wide")
-
-st.title(t['title'])
-st.write(t['subtitle'])
-
-# Toggles
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    update_freq = st.checkbox("Update Frequencies", value=True)
-with col2:
-    add_new_channels = st.checkbox("Add New Channels", value=True)
-with col3:
-    smart_mode = st.checkbox("Smart Mode", value=True)
-
-# Fake DB
-NILESAT_LIVE_DB = {
-    "MBC 2": {"frequency": 11938, "update_date": "2026-01-20"},
-    "QATAR TV HD": {"frequency": 10834, "update_date": "2026-05-14"}
-}
-
-NILESAT_NEW_CHANNELS = [
-    {"name": "RAMBO ACTION HD", "frequency": 10834},
-    {"name": "MISHMISH CINEMA", "frequency": 11938}
-]
-
-ALL_CATEGORIES = ["Sports", "Movies", "Kids", "News", "Religion", "General"]
-
+# ======================
+# CATEGORY ENGINE
+# ======================
 def ai_classify(name):
     name = name.upper()
-    if "SPORT" in name:
+
+    if any(x in name for x in ["SPORT", "SSC", "ONTIME"]):
         return "Sports"
-    if "MBC" in name or "MOVIE" in name or "CINEMA" in name:
+    if any(x in name for x in ["MOVIE", "CINEMA", "MBC2", "ROTANA"]):
         return "Movies"
-    if "CARTOON" in name or "KIDS" in name:
+    if any(x in name for x in ["CARTOON", "KIDS"]):
         return "Kids"
-    if "NEWS" in name:
+    if any(x in name for x in ["NEWS", "JAZEERA"]):
         return "News"
-    if "QURAN" in name or "HAYAT" in name:
+    if any(x in name for x in ["QURAN", "HAYAT"]):
         return "Religion"
+
     return "General"
 
-uploaded_file = st.file_uploader("Upload TLL", type=["TLL"])
 
-if uploaded_file:
+CATEGORIES = ["Sports", "Movies", "Kids", "News", "Religion", "General"]
 
-    file_bytes = uploaded_file.read()
+# ======================
+# UPLOAD FILE
+# ======================
+uploaded_file = st.file_uploader("Upload TLL File")
 
+def parse_file(file_bytes):
     try:
         root = ET.fromstring(file_bytes)
-        is_modern = True
+
+        data_node = root.find(".//legacybroadcast")
+        if data_node is not None:
+            data = json.loads(data_node.text)
+            channels = data.get("channelList", [])
+
+            return [
+                {
+                    "name": c.get("channelName", ""),
+                    "freq": c.get("frequency", ""),
+                }
+                for c in channels
+            ]
+
     except:
-        is_modern = False
-        file_text = file_bytes.decode("utf-8", errors="ignore")
+        pass
 
-    channels = []
+    # fallback text
+    text = file_bytes.decode("utf-8", errors="ignore")
+    items = re.findall(r'vchName>(.*?)</vchName>', text)
 
-    # MODERN XML
-    if is_modern:
-        broadcast = root.find(".//legacybroadcast")
-        data = json.loads(broadcast.text)
-        lst = data.get("channelList", [])
+    return [{"name": i, "freq": ""} for i in items]
 
-        for i, ch in enumerate(lst):
-            name = ch.get("channelName", "")
-            freq = ch.get("frequency", "")
 
-            if update_freq and name.upper() in NILESAT_LIVE_DB:
-                freq = NILESAT_LIVE_DB[name.upper()]["frequency"]
+# ======================
+# LOAD
+# ======================
+if uploaded_file:
+    data = parse_file(uploaded_file.read())
 
-            channels.append({
-                "name": name,
-                "freq": freq,
-                "raw": ch
-            })
+    st.session_state.channels = data
+    st.session_state.order = list(range(len(data)))
 
-        if add_new_channels:
-            for n in NILESAT_NEW_CHANNELS:
-                channels.append({
-                    "name": n["name"],
-                    "freq": n["frequency"],
-                    "raw": {}
-                })
+# ======================
+# CHANNELS
+# ======================
+channels = st.session_state.channels
 
-    # OLD XML
-    else:
-        items = re.findall(r'(<ITEM>.*?</ITEM>)', file_text, re.DOTALL)
+# ======================
+# SORT MODE
+# ======================
+mode = st.radio("Sort Mode", ["Manual", "By Category"])
 
-        for item in items:
-            name = re.search(r'<vchName>(.*?)</vchName>', item)
-            freq = re.search(r'<frequency>(.*?)</frequency>', item)
+# ======================
+# CATEGORY PRIORITY
+# ======================
+priority = st.multiselect("Category Order", CATEGORIES)
 
-            name = name.group(1) if name else "Unknown"
-            freq = freq.group(1) if freq else ""
+for c in CATEGORIES:
+    if c not in priority:
+        priority.append(c)
 
-            channels.append({
-                "name": name,
-                "freq": freq,
-                "raw": item
-            })
+# ======================
+# APPLY SORT
+# ======================
+def get_cat(ch):
+    return ai_classify(ch["name"])
 
-    # CATEGORY PRIORITY
-    priority = st.multiselect("Category Order", ALL_CATEGORIES)
+if channels:
 
-    for c in ALL_CATEGORIES:
-        if c not in priority:
-            priority.append(c)
+    if mode == "By Category":
+        channels = sorted(
+            channels,
+            key=lambda x: (priority.index(get_cat(x)), x["name"])
+        )
 
-    # SORT (IMPROVED)
-    channels_sorted = sorted(
-        channels,
-        key=lambda x: (priority.index(ai_classify(x["name"])), x["name"])
-    )
-
-    # SEARCH
-    q = st.text_input("Search")
-    if q:
-        channels_sorted = [c for c in channels_sorted if q.lower() in c["name"].lower()]
-
+    # ======================
+    # MANUAL SORT (Simple reorder)
+    # ======================
     st.write("## Channels")
 
-    for c in channels_sorted:
-        st.write(f"{c['name']}  |  {c['freq']}  |  {ai_classify(c['name'])}")
+    new_list = []
 
-    # DRAG & DROP UI (optional visual)
-    st.write("## Drag Sort (Visual)")
+    for i, ch in enumerate(channels):
+        col1, col2, col3 = st.columns([6,2,2])
 
-    html = """
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <ul id="list">
-    """ + "".join([f"<li style='padding:8px;margin:5px;background:#222;color:#fff'>{c['name']}</li>" for c in channels_sorted]) + """
-    </ul>
+        with col1:
+            st.write(f"{ch['name']}")
 
-    <script>
-    new Sortable(list,{animation:150});
-    </script>
-    """
+        with col2:
+            st.write(get_cat(ch))
 
-    components.html(html, height=400)
+        with col3:
+            if st.button("⬆", key=f"up{i}"):
+                if i > 0:
+                    channels[i], channels[i-1] = channels[i-1], channels[i]
+                    st.rerun()
 
-    # EXPORT TXT
-    if st.button("Export TXT"):
-        txt = "CHANNEL LIST\n\n"
-        for i, c in enumerate(channels_sorted, 1):
-            txt += f"{i:03d} | {c['name']} | {ai_classify(c['name'])}\n"
+        new_list.append(ch)
 
-        st.download_button(
-            "Download TXT",
-            txt,
-            file_name="channels.txt"
-        )
+    st.session_state.channels = channels
+
+# ======================
+# EXPORT
+# ======================
+st.write("---")
+
+if st.button("Generate TXT"):
+    txt = "CHANNEL LIST\n\n"
+
+    for i, ch in enumerate(st.session_state.channels, 1):
+        txt += f"{i:03d} | {ch['name']} | {ai_classify(ch['name'])}\n"
+
+    st.download_button(
+        "Download TXT",
+        txt,
+        file_name="channels.txt"
+    )
+
+if st.button("Generate TLL"):
+    xml = "<CHANNELS>\n"
+
+    for i, ch in enumerate(st.session_state.channels, 1):
+        xml += f"""
+        <ITEM>
+            <prNum>{i}</prNum>
+            <vchName>{ch['name']}</vchName>
+            <frequency>{ch['freq']}</frequency>
+        </ITEM>
+        """
+
+    xml += "\n</CHANNELS>"
+
+    st.download_button(
+        "Download TLL",
+        xml,
+        file_name="GlobalClone00001.TLL"
+    )
