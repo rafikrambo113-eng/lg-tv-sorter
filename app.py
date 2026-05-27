@@ -151,15 +151,39 @@ ALL_AVAILABLE_CATEGORIES = [
     "📺 General Channels" if st.session_state.lang == 'en' else "📺 قنوات عامة ومنوعات"
 ]
 
+# 🧠 محرك الهيكلة والفرز الهرمي بالذكاء الاصطناعي
 def ai_classify(channel_name):
-    name = channel_name.upper()
-    if any(w in name for w in ["CTV", "AGHAPY", "MESAT", "KARMA", "NOURSAT", "COPTIC"]): return ALL_AVAILABLE_CATEGORIES[0]
-    if any(w in name for w in ["QURAN", "RAHMA", "MAJD", "MAKKA", "HAYAT", "SUNNAH"]): return ALL_AVAILABLE_CATEGORIES[1]
-    if any(w in name for w in ["MOSALSALAT", "DRAMA", "SERIES", "KHOLASA", "ZEE ALWAN", "SHAHID"]): return ALL_AVAILABLE_CATEGORIES[2]
-    if any(w in name for w in ["CINEMA", "ROTANA", "AFLAM", "MIX", "FOX", "MBC2", "ACTION", "RAMBO", "MISHMISH", "MOVIE", "B4U", "TOP MOVIES"]): return ALL_AVAILABLE_CATEGORIES[3]
-    if any(w in name for w in ["SPACE TOON", "CN", "MAJID", "KIDS", "TOM", "DISNEY", "NICKELODEON"]): return ALL_AVAILABLE_CATEGORIES[4]
-    if any(w in name for w in ["SPORT", "ONTIME", "KASS", "AD_SPORTS", "BIEN", "AL AHLY", "ZAMALEK"]): return ALL_AVAILABLE_CATEGORIES[5]
-    if any(w in name for w in ["NEWS", "JAZEERA", "ARABIYA", "HADATH", "CAIRO", "CBC EXTRA", "SKY"]): return ALL_AVAILABLE_CATEGORIES[6]
+    name = channel_name.upper().strip()
+    
+    # 1. ⛪ قنوات مسيحية
+    if any(w in name for w in ["CTV", "AGHAPY", "MESAT", "KARMA", "NOURSAT", "COPTIC", "CYC", "LOGOS", "MARMAR", "SAT-7", "SAT7"]): 
+        return ALL_AVAILABLE_CATEGORIES[0]
+        
+    # 2. 🕌 قنوات إسلامية
+    if any(w in name for w in ["QURAN", "RAHMA", "MAJD", "MAKKA", "MADINA", "SUNNA", "ALNAS", "PEACE TV", "IQRAA", "SAUDI Q"]): 
+        return ALL_AVAILABLE_CATEGORIES[1]
+        
+    # 3. ⚽ رياضة (متقدمة في الفحص لمنع الاختلاط)
+    if any(w in name for w in ["SPORT", "ONTIME", "ON TIME", "KASS", "AD_SPORTS", "AD SPORTS", "BEIN", "BIEN", "AHLY", "ZAMALEK", "YALLA", "KOORA"]): 
+        return ALL_AVAILABLE_CATEGORIES[5]
+
+    # 4. 🍿 أفلام عربية وأجنبية
+    if any(w in name for w in ["CINEMA", "AFLAM", "ROTANA FX", "ROTANA CINEMA", "MIX", "FOX", "MBC2", "MBC 2", "MBC ACTION", "ACTION", "RAMBO", "MISHMISH", "MOVIE", "B4U", "TOP MOVIES", "SCIFI", "HOLLYWOOD", "WARNER", "CINE"]): 
+        return ALL_AVAILABLE_CATEGORIES[3]
+
+    # 5. 🎬 مسلسلات ودراما
+    if any(w in name for w in ["MOSALSALAT", "DRAMA", "SERIES", "KHOLASA", "ZEE ALWAN", "ZEE_ALWAN", "SHAHID", "MBC DRAMA", "MBC+ DRAMA", "ROTANA DRAMA", "CBC DRAMA", "DMC DRAMA", "AL HAYAT DRAMA", "HAYAT DRAMA"]): 
+        return ALL_AVAILABLE_CATEGORIES[2]
+        
+    # 6. 👶 أطفال وكرتون
+    if any(w in name for w in ["SPACE TOON", "SPACETOON", "CN", "MAJID", "KIDS", "TOM", "DISNEY", "NICKELODEON", "BOOMERANG", "KOOKY", "KARAMEESH", "TOYOR"]): 
+        return ALL_AVAILABLE_CATEGORIES[4]
+        
+    # 7. 📰 أخبار وسياسة
+    if any(w in name for w in ["NEWS", "JAZEERA", "ARABIYA", "HADATH", "CAIRO NEWS", "ALHADATH", "CBC EXTRA", "EXTRA NEWS", "SKY NEWS", "RT", "CNN", "BBC", "MAYADEEN"]): 
+        return ALL_AVAILABLE_CATEGORIES[6]
+        
+    # 8. 📺 قنوات عامة ومنوعات
     return ALL_AVAILABLE_CATEGORIES[7]
 
 uploaded_file = st.file_uploader(t['upload_label'], type=["TLL"])
@@ -175,7 +199,6 @@ if uploaded_file is not None:
     try:
         root = ET.fromstring(file_bytes)
     except ET.ParseError:
-        # حماية إضافية في حالة وجود رموز غريبة ببعض ملفات الـ TLL القديمة
         root = ET.fromstring(file_text_original.encode('utf-8', errors='ignore'))
 
     model_setting = root.find(".//ModelName")
@@ -210,7 +233,6 @@ if uploaded_file is not None:
         broadcast_data = json.loads(legacy_broadcast_tag.text)
         channels_list = broadcast_data.get("channelList", [])
         
-        # مصفوفة فحص الأسماء الموجودة بالفعل لمنع التكرار
         existing_names = {ch.get("channelName", "").upper() for ch in channels_list}
         
         if add_new_channels:
@@ -246,7 +268,6 @@ if uploaded_file is not None:
                     
             channels_to_sort.append({"id": idx, "name": ch_name, "freq": old_freq, "raw_node": ch})
     else:
-        # الموديل القديم (32 بوصة مثلاً)
         item_blocks = re.findall(r'(<ITEM>.*?</ITEM>)', file_text_original, re.DOTALL)
         existing_names = set()
         
